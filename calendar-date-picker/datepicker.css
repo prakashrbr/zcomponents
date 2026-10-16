@@ -574,7 +574,7 @@
   font-size: 14px; font-weight: 500; letter-spacing: .02857em; text-transform: uppercase; color: var(--dp-primary);
 }
 .dp[data-ds="mui"] .dp-btn:hover,
-.dp[data-ds="mui"] .dp-btn.is-primary:hover { background: var(--dp-primary-hover); }
+.dp[data-ds="mui"] .dp-btn.is-primary:hover { background: color-mix(in srgb, var(--dp-primary) 8%, transparent); }
 .dp[data-ds="mui"] .dp-btn.is-primary { background: none; color: var(--dp-primary); }
 .dp[data-ds="mui"] .dp-btn:disabled { background: none; box-shadow: none; color: var(--dp-disabled); }
 

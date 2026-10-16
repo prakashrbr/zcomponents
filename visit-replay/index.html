@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visit Replay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../calendar-date-picker/datepicker.css">
+<link rel="stylesheet" href="visitreplay.css">
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('dp-doc-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<style>
+  :root {
+    --bg: #ffffff; --side: #f2f8ff; --panel: #f9fafb; --panel-border: #eaecf0; --card: #ffffff;
+    --text: #101828; --muted: #364153; --soft: #6a7282; --accent: #155dfc; --rule: #eaecf0;
+    --callout-bg: #dcfce7; --callout-border: #b9f8cf; --callout-text: #0d542b; --chip-on: #ffffff;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b111d; --side: #0a1120; --panel: #101828; --panel-border: #1e2939; --card: #101828;
+    --text: #f3f4f6; --muted: #d1d5dc; --soft: #99a1af; --accent: #51a2ff; --rule: #1e2939;
+    --callout-bg: rgba(0, 201, 80, .1); --callout-border: rgba(0, 201, 80, .28); --callout-text: #7bf1a8; --chip-on: #1e2939;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.55 'DM Sans', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .app { display: grid; grid-template-columns: 360px minmax(0, 1fr); min-height: 100vh; }
+  .doc { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 56px 36px 64px; background: var(--side); border-right: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+  .doc h1 { margin: 0 0 28px; font-size: 26px; font-weight: 500; line-height: 1.2; color: var(--text); letter-spacing: -.01em; }
+  .doc h3 { margin: 28px 0 10px; font-size: 14px; font-weight: 500; color: var(--accent); }
+  .doc p { margin: 0 0 10px; }
+  .doc ul { margin: 0 0 10px; padding-left: 20px; }
+  .doc li { margin: 2px 0; }
+  .doc nav { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 24px; font-size: 12px; }
+  .doc nav a { color: var(--soft); text-decoration: none; }
+  .doc nav a:hover { color: var(--accent); }
+  .key { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; vertical-align: 0; }
+  .callout { margin: 12px 0; padding: 10px 12px; border-radius: 6px; background: var(--callout-bg); border: 1px solid var(--callout-border); color: var(--callout-text); }
+  main { min-width: 0; padding: 0 48px 96px; }
+  .topbar { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin: 0 -48px; padding: 14px 48px; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--rule); }
+  .topbar strong { font-size: 15px; font-weight: 600; }
+  .topbar .ctrls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+  .ctrl-label { font-size: 12px; color: var(--soft); margin-right: 6px; }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--panel); border: 1px solid var(--panel-border); }
+  .seg button { height: 30px; padding: 0 12px; border: 0; border-radius: 7px; background: none; cursor: pointer; font: 500 13px 'DM Sans', sans-serif; color: var(--soft); }
+  .seg button:hover { color: var(--text); }
+  .seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--text); box-shadow: 0 1px 2px rgba(16, 24, 40, .1), 0 0 0 1px var(--panel-border); }
+  .seg button:focus-visible, .open-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  section { padding-top: 56px; }
+  section + section { border-top: 1px solid var(--rule); margin-top: 56px; }
+  h2 { margin: 0 0 8px; font-size: 20px; font-weight: 500; letter-spacing: -.005em; }
+  .lede { margin: 0 0 24px; color: var(--soft); max-width: 76ch; }
+  h5 { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--text); }
+  .panel { position: relative; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; }
+  code { font: 12px ui-monospace, 'Cascadia Code', Consolas, monospace; padding: 1px 5px; border-radius: 4px; background: var(--panel); border: 1px solid var(--panel-border); }
+  .stage { display: flex; justify-content: center; padding: 32px 24px; }
+  .stage > div { width: 100%; max-width: 900px; }
+
+  .pg-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
+  .open-btn { height: 32px; padding: 0 14px; border: 1px solid var(--panel-border); border-radius: 8px; background: var(--card); color: var(--text); font: 500 13px 'DM Sans', sans-serif; cursor: pointer; }
+  .open-btn:hover { border-color: var(--soft); }
+  .log { margin: 0; font-size: 13px; color: var(--soft); }
+  .log b { color: var(--text); font-weight: 500; }
+  .try { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 6px 24px; margin: 20px 0 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+
+  .anat-wrap { position: relative; }
+  .callouts { position: absolute; inset: 0; pointer-events: none; }
+  .co-dot { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 500 11px 'DM Sans', sans-serif; color: #fff; box-shadow: 0 0 0 2px var(--panel); }
+  .parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 8px 32px; margin: 24px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+  .parts li { display: flex; gap: 10px; }
+  .parts li span:first-child { flex: none; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: #fff; }
+  .parts b { font-weight: 500; color: var(--text); }
+
+  .specs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 20px; }
+  .spec { padding: 20px; }
+  .dp.vr.vr-spec { width: auto; max-width: none; background: none; border: 0; border-radius: 0; }
+  .spec-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--soft); }
+  .spec-row > :first-child { flex: none; }
+  .spec-row > span:last-child { min-width: 0; }
+  .spec .vr-sent, .spec .vr-card { pointer-events: none; }
+  .spec .vr-card, .spec .vr-sent { width: 240px; }
+  .bars-demo { display: flex; align-items: center; gap: 2px; height: 34px; }
+  .bars-demo i { width: 2px; border-radius: 1px; }
+  .tag-demo { position: relative; width: 16px; height: 38px; }
+  .tag-demo .vr-tag { left: 8px; }
+  .ev-demo { position: relative; flex: none; width: 20px; height: 20px; }
+  .dp.vr .vr-sent.is-demo-on { background: var(--vr-on); box-shadow: -2px 0 0 0 var(--vr-accent); }
+  .dp.vr .vr-sent.is-demo-hover { background: var(--vr-item-hover); box-shadow: 0 0 0 1px var(--vr-item-hover-border); }
+  .dp.vr .vr-sent.is-demo-focus { outline: 2px solid var(--dp-focus); outline-offset: 1px; }
+  .dp.vr .vr-card.is-demo-dim { opacity: var(--vr-dim); }
+
+  .theme-well { border-radius: 12px; border: 1px solid; margin-bottom: 20px; }
+  .theme-well header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 18px; border-bottom: 1px solid; }
+  .theme-well header b { font-weight: 500; font-size: 14px; }
+  .theme-well header span { font-size: 12px; }
+  .theme-well .well { display: flex; justify-content: center; padding: 32px 24px; }
+  .theme-well .well > div { width: 100%; max-width: 900px; }
+  .theme-well.light { background: #ffffff; color: #101828; border-color: #eaecf0; }
+  .theme-well.light header { border-color: #eaecf0; } .theme-well.light header span { color: #6a7282; }
+  .theme-well.dark { background: #101828; color: #f3f4f6; border-color: #1e2939; }
+  .theme-well.dark header { border-color: #1e2939; } .theme-well.dark header span { color: #99a1af; }
+  .phone { width: 375px; max-width: 100%; margin: 0 auto; }
+  footer.note { margin-top: 64px; font-size: 12px; color: var(--soft); }
+
+  @media (max-width: 1180px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .doc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 36px 24px; }
+    main { padding: 0 24px 72px; }
+    .topbar { margin: 0 -24px; padding: 12px 24px; }
+  }
+  @media (max-width: 640px) {
+    main { padding: 0 16px 64px; }
+    .topbar { margin: 0 -16px; padding: 10px 16px; }
+    .doc { padding: 28px 16px; }
+    .stage, .theme-well .well { padding: 16px 0; }
+    .stage { background: none; border: 0; }
+    .callouts { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="doc" aria-label="Documentation">
+    <nav aria-label="Components">
+      <a href="../calendar-date-picker/index.html">1. Calendar Date Picker</a>
+      <a href="../date-range-picker/index.html">2. Date Range Picker</a>
+      <a href="../actual-date-time/index.html">4. Actual Date &amp; Time</a>
+      <a href="../time-picker/index.html">5. Time Picker</a>
+    </nav>
+    <h1>Visit Replay</h1>
+    <p>Replays a recorded visit next to the note the AI drafted from it. Every part of the note shows where it came from: the lines in the transcript and the moment in the audio.</p>
+    <p>Goal: let providers check the AI draft against what was actually said, quickly, before they sign.</p>
+
+    <h3>When To Use</h3>
+    <ul>
+      <li>A visit was recorded and the AI drafted the note.</li>
+      <li>The provider wants to check a section or a single statement against the conversation.</li>
+      <li>Part of the note is based on audio that wasn't clear.</li>
+    </ul>
+
+    <h3>When Not To Use</h3>
+    <ul>
+      <li>There's no recording, or no consent to keep one.</li>
+      <li>Editing the note. Use the note editor; this view is for review.</li>
+      <li>Live transcription during the visit.</li>
+    </ul>
+
+    <h3>Waveform</h3>
+    <p>The recording is shown as bars, coloured by what happened in that part of the visit:</p>
+    <ul>
+      <li><span class="key" style="background:#a9d3ff"></span>Provider speech used in the note</li>
+      <li><span class="key" style="background:#ffc59d"></span>Patient speech used in the note</li>
+      <li><span class="key" style="background:#dadde2"></span>Said, but not in the note</li>
+      <li><span class="key" style="background:#e7000b"></span>Not clear</li>
+    </ul>
+    <p>Tags under the waveform mark each discussion (history, medications, examination…). Hover a tag to see its name; select it to jump there and play that section.</p>
+
+    <h3>AI Answer &amp; Provenance</h3>
+    <ul>
+      <li>The selected section's draft appears above, and is broken into simple sentences below.</li>
+      <li>Selecting a sentence highlights the transcript lines it came from, links them, marks the phrase in the draft, and plays those lines.</li>
+      <li>Selecting a transcript line plays it, and selects the sentence that uses it.</li>
+      <li>Sentences based on unclear audio, or with no source at all, are flagged.</li>
+    </ul>
+    <div class="callout">Every sentence in the note should link to at least one line of the conversation. The provider decides; the replay only shows the evidence.</div>
+
+    <h3>Behavior</h3>
+    <ul>
+      <li>Clips stop at the end of the source, so the provider hears just the evidence.</li>
+      <li>Play continues freely, and the view follows the recording from section to section.</li>
+      <li>Nothing in the note changes here. Done marks the review as complete; Cancel closes without changes.</li>
+    </ul>
+
+    <h3>Clinical Timeline</h3>
+    <p>When the patient refers to something in their past ("the sinus thing was about three weeks ago"), the timeline shows their record around it and the event the AI matched.</p>
+    <ul>
+      <li>It follows the audio: the mention shown is the latest one heard at the playhead.</li>
+      <li>Events are plotted by type: <b>●</b> encounter, <b>■</b> lab, <b>◆</b> medication. The green dot is this visit.</li>
+      <li>The matched event is ringed in blue, with its details below.</li>
+      <li><b>Not this event</b> moves to the AI's next suggestion, which the provider can confirm with <b>Use this event</b>. When every suggestion is ruled out, the mention stays unlinked.</li>
+      <li>Selecting any other event previews it without linking it. Esc returns to the match.</li>
+      <li>Switches hide event types; the linked event always stays visible.</li>
+    </ul>
+
+    <h3>Accessibility</h3>
+    <ul>
+      <li>The waveform is a slider: arrows seek 5 seconds (Shift: 15), Space plays or pauses.</li>
+      <li>Tags, sentences and transcript lines each take one Tab stop; arrow keys move within them.</li>
+      <li>Status never relies on colour alone: lines say "Not clear" or "Not in note".</li>
+      <li>Selections are announced, including the times of the sources.</li>
+      <li>Animations are removed under reduced motion.</li>
+    </ul>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <strong>Visit Replay</strong>
+      <div class="ctrls">
+        <div><span class="ctrl-label" id="ds-label">Design system</span>
+          <div class="seg" role="group" aria-labelledby="ds-label" id="ds-switch">
+            <button type="button" data-ds="custom" aria-pressed="true">Custom</button>
+            <button type="button" data-ds="ant" aria-pressed="false">Ant Design</button>
+            <button type="button" data-ds="mui" aria-pressed="false">MUI</button>
+          </div>
+        </div>
+        <div><span class="ctrl-label" id="th-label">Theme</span>
+          <div class="seg" role="group" aria-labelledby="th-label" id="theme-switch">
+            <button type="button" data-theme="light">Light</button>
+            <button type="button" data-theme="dark">Dark</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section id="playground" style="padding-top:40px">
+      <h2>Playground</h2>
+      <p class="lede">A 12-minute visit about chest tightness. There's no audio file in this demo, so playback runs on a timer; pass <code>audio</code> with a recording URL to play real sound.</p>
+      <div class="pg-bar">
+        <button type="button" class="open-btn" id="open-dialog">Open as a dialog</button>
+        <p class="log" id="log" aria-live="polite">Nothing reviewed yet.</p>
+      </div>
+      <div class="panel stage"><div id="pg"></div></div>
+      <ul class="try">
+        <li>Select another sentence and watch the links redraw</li>
+        <li>Select a dimmed transcript line to play it</li>
+        <li>Hover a tag, then select <b>Medications</b></li>
+        <li>Hover the flagged medication sentence</li>
+        <li>Open <b>Clinical timeline</b> and select <b>Not this event</b></li>
+        <li>On the timeline, seek to 2:00 and watch the mention change</li>
+        <li>Press play and let it run into the next section</li>
+        <li>Click a phrase in the draft to find its sentence</li>
+      </ul>
+    </section>
+
+    <section id="timeline">
+      <h2>Clinical timeline</h2>
+      <p class="lede">Opened on the timeline tab. The patient mentions an urgent care visit about three weeks before this visit; the AI's best match is ringed, with two more suggestions behind it.</p>
+      <div class="panel stage"><div id="tl"></div></div>
+      <ul class="try">
+        <li>Rule out the match to see the next suggestion</li>
+        <li>Rule out all three, then show them again</li>
+        <li>Select another event to preview it</li>
+        <li>Page back with ‹ and come back with “Show it”</li>
+        <li>Turn off Labs: the linked event stays</li>
+        <li>Press play: the mention follows the audio</li>
+      </ul>
+    </section>
+
+    <section id="anatomy">
+      <h2>Anatomy</h2>
+      <p class="lede">Numbers are placed from the rendered component, so they follow each design system's layout.</p>
+      <div class="panel stage anat-wrap" id="anat-stage"><div id="anat"></div><div class="callouts" aria-hidden="true"></div></div>
+      <ol class="parts" id="parts"></ol>
+    </section>
+
+    <section id="states">
+      <h2>States</h2>
+      <p class="lede">Waveform, tag, sentence and transcript states. All colours come from the shared palette, so they're the same in every design system.</p>
+      <div class="specs" id="specs"></div>
+    </section>
+
+    <section id="themes">
+      <h2>Light and Dark</h2>
+      <p class="lede">The current design system in both themes. These follow the design system switch but ignore the theme switch.</p>
+      <div id="themes-list"></div>
+    </section>
+
+    <section id="narrow">
+      <h2>Narrow screens</h2>
+      <p class="lede">Below 640px the thread stacks: the selected sentence opens to show its sources underneath, joined by the same connector line. As a dialog it fills the screen.</p>
+      <div class="panel stage"><div class="phone" id="phone"></div></div>
+    </section>
+
+    <footer class="note">Files: <code>visitreplay.js</code> · <code>visitreplay.css</code> · <code>sample-visit.js</code> (demo data), built on <code>../calendar-date-picker/datepicker.js</code> · <code>datepicker.css</code>.</footer>
+  </main>
+</div>
+
+<script src="../calendar-date-picker/datepicker.js"></script>
+<script src="visitreplay.js"></script>
+<script src="sample-visit.js"></script>
+<script>
+(function () {
+  const root = document.documentElement;
+  let DS = 'custom';
+  try { DS = localStorage.getItem('dp-doc-ds') || 'custom'; } catch (e) {}
+  if (!['custom', 'ant', 'mui'].includes(DS)) DS = 'custom';
+  let THEME = root.dataset.theme;
+  const all = [], themed = [];
+  const V = window.SAMPLE_VISIT;
+  const make = (id, opts, fixedTheme) => {
+    const p = new VisitReplay(document.getElementById(id), Object.assign({ ds: DS, theme: fixedTheme || THEME }, V, opts));
+    all.push(p); if (!fixedTheme) themed.push(p);
+    return p;
+  };
+  const titleOf = id => (V.sections.find(s => s.id === id) || {}).title || id;
+
+  /* Playground */
+  const log = document.getElementById('log');
+  const describe = r => !r.timeline ? '' : ' Timeline: ' + r.timeline.map(t => {
+    const ev = V.events.find(e => e.id === t.event);
+    return `${t.mention.replace('mn-', '')} → ${ev ? ev.title : 'none'} (${t.status})`;
+  }).join('; ') + '.';
+  const opened = e => { log.innerHTML = `<b>Open:</b> ${e.title}. In the product this opens the record in a new view.`; };
+  const report = r => {
+    log.innerHTML = `<b>Done.</b> Reviewed: ${r.reviewed.map(titleOf).join(', ')}.${describe(r)}`;
+  };
+  make('pg', {
+    section: 'hpi', sentence: 1,
+    onDone: report, onOpenEvent: opened,
+    onCancel: () => { log.innerHTML = '<b>Cancelled.</b> Nothing was marked as reviewed.'; }
+  });
+  document.getElementById('open-dialog').addEventListener('click', () => {
+    VisitReplay.open(Object.assign({ ds: DS, theme: THEME, section: 'hpi', sentence: 1 }, V, {
+      onDone: report, onOpenEvent: opened,
+      onCancel: () => { log.innerHTML = '<b>Dialog closed.</b> Nothing was marked as reviewed.'; }
+    }));
+  });
+
+  /* Clinical timeline */
+  make('tl', { section: 'intro', tab: 'timeline', onOpenEvent: opened });
+
+  /* Anatomy */
+  make('anat', { section: 'meds', sentence: 1 });
+  const COLORS = ['#0055ff', '#c534ff', '#d38900', '#ff013c', '#0cb000', '#fb7a24', '#00a6f4'];
+  const PARTS = [
+    ['.vr-title', 'Header', 'Title and close. Closing is the same as Cancel.', 'l'],
+    ['.vr-legend', 'Colour key', 'Who spoke, and whether it made it into the note.', 'l'],
+    ['.vr-play', 'Play / pause', 'Plays freely from the playhead.', 't'],
+    ['.vr-bars', 'Waveform', 'The whole visit, coloured by speaker and status. Click or drag to seek.', 't'],
+    ['.vr-ph', 'Playhead', 'Current position in the recording.', 'r'],
+    ['.vr-tag.is-on', 'Section tags', 'One per discussion. Hover for the name; select to jump there and play it.', 'b'],
+    ['.vr-note', 'AI draft', "The selected section's note. The selected sentence's phrase is highlighted.", 'l'],
+    ['.vr-sent', 'Sentences', 'The draft as simple statements. Flags mark unclear audio or a missing source.', 'l'],
+    ['.vr-links', 'Provenance links', 'Connect the selected sentence to its sources, drawn in when it changes.', 'm'],
+    ['.vr-srcs .vr-card.is-linked', 'Sources', 'The transcript lines behind the sentence. Other lines are dimmed.', 'r'],
+    ['.vr-actions', 'Actions', 'Done marks the review as complete. Cancel closes without changes.', 'l']
+  ];
+  document.getElementById('parts').innerHTML = PARTS.map(([, n, d], i) =>
+    `<li><span style="background:${COLORS[i % COLORS.length]}">${i + 1}</span><span><b>${n}.</b> ${d}</span></li>`).join('');
+  const stage = document.getElementById('anat-stage');
+  function annotate() {
+    const layer = stage.querySelector('.callouts');
+    layer.innerHTML = '';
+    const sr = stage.getBoundingClientRect(), comp = stage.querySelector('.vr');
+    if (!comp) return;
+    layer.innerHTML = PARTS.map(([sel, , , at], i) => {
+      const el = comp.querySelector(sel);
+      if (!el || !el.getClientRects().length) return '';
+      const r = el.getBoundingClientRect();
+      const L = r.left - sr.left, T = r.top - sr.top, W = r.width, H = r.height;
+      const [x, y] = {
+        l: [L - 16, T + Math.min(H / 2, 12)], r: [L + W + 16, T + Math.min(H / 2, 12)],
+        t: [L + Math.min(W / 4, 15), T - 14], b: [L + W / 2 + 14, T + H - 4], m: [L + W / 2, T + 40]
+      }[at];
+      return `<div class="co-dot" style="left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;background:${COLORS[i % COLORS.length]}">${i + 1}</div>`;
+    }).join('');
+  }
+  let raf = 0;
+  const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => setTimeout(annotate, 60)); };
+  new MutationObserver(schedule).observe(document.getElementById('anat'), { childList: true, subtree: true });
+  new ResizeObserver(schedule).observe(stage);
+  document.fonts && document.fonts.ready.then(schedule);
+
+  /* States (static specimens using the component's own classes) */
+  function renderSpecs() {
+    const bars = (cls, hs) => `<span class="bars-demo">${hs.map(h => `<i style="height:${h}px;background:var(--vr-${cls})"></i>`).join('')}</span>`;
+    const card = (cls, who, at, text, extra = '') => `<span class="vr-card ${cls}"><span class="vr-meta"><span class="vr-who">${who}</span><i></i><span class="vr-at">${at}</span>${extra}<span class="vr-eq" aria-hidden="true"><b></b><b></b><b></b></span></span><span class="vr-text">${text}</span></span>`;
+    const sent = (cls, text, flag = '') => `<span class="vr-sent ${cls}"><span>${text}</span>${flag}</span>`;
+    const flag = window.DatePicker.shared.I.warn;
+    const wrap = (title, rows) => `<div class="panel spec"><h5>${title}</h5><div class="dp vr vr-spec" data-ds="${DS}" data-theme="${THEME}">${rows.map(([a, b]) => `<div class="spec-row">${a}<span>${b}</span></div>`).join('')}</div></div>`;
+    document.getElementById('specs').innerHTML = [
+      wrap('Waveform', [
+        [bars('provider', [13, 33, 13, 21, 7]), 'Provider, in the note'],
+        [bars('patient', [7, 21, 33, 13, 21]), 'Patient, in the note'],
+        [bars('omitted', [13, 7, 21, 5, 13]), 'Said, not in the note'],
+        [bars('unclear', [5, 13, 21, 33, 21]), 'Not clear'],
+        [bars('silence', [3, 3, 3, 3, 3]), 'Silence']
+      ]),
+      wrap('Section tags', [
+        ['<span class="tag-demo"><span class="vr-tag" style="position:absolute"></span></span>', 'Default'],
+        ['<span class="tag-demo"><span class="vr-tag" style="position:absolute;--vr-tag:var(--vr-tag-hover)"></span></span>', 'Hover (shows the section name)'],
+        ['<span class="tag-demo"><span class="vr-tag is-on" style="position:absolute"></span></span>', 'Selected section'],
+        ['<span class="tag-demo"><span class="vr-tag" style="position:absolute;outline:2px solid var(--dp-focus)"></span></span>', 'Keyboard focus']
+      ]),
+      wrap('Sentences', [
+        [sent('', 'Chest tightness for 3 weeks'), 'Default'],
+        [sent('is-demo-hover', 'Chest tightness for 3 weeks'), 'Hover'],
+        [sent('is-demo-on', 'Chest tightness for 3 weeks'), 'Selected'],
+        [sent('is-demo-focus', 'Chest tightness for 3 weeks'), 'Keyboard focus'],
+        [sent('', 'Evening tablet, possibly atorvastatin', `<span class="vr-flag">${flag}</span>`), 'Unclear audio or no source (explains on hover)']
+      ]),
+      wrap('Clinical timeline', [
+        ['<span class="ev-demo"><span class="vr-ev is-encounter" style="left:10px;top:10px"></span></span>', 'Encounter'],
+        ['<span class="ev-demo"><span class="vr-ev is-lab" style="left:10px;top:10px"></span></span>', 'Lab'],
+        ['<span class="ev-demo"><span class="vr-ev is-medication" style="left:10px;top:10px"></span></span>', 'Medication'],
+        ['<span class="ev-demo"><span class="vr-ev is-encounter is-linked is-shown" style="left:10px;top:10px"></span></span>', 'Linked event, shown'],
+        ['<span class="ev-demo"><span class="vr-ev is-lab is-shown" style="left:10px;top:10px"></span></span>', 'Other event, previewed'],
+        ['<span class="ev-demo"><span class="vr-today" style="left:10px;top:10px"></span></span>', 'This visit'],
+        [`<span class="vr-badge is-match">${window.DatePicker.shared.I.check}Matches</span>`, "The AI's best match, or one you confirmed (“Linked by you”)"],
+        [`<span class="vr-badge is-maybe">${window.DatePicker.shared.sparkle()}Possible match</span>`, 'A later suggestion, waiting for “Use this event”'],
+        ['<span class="vr-badge">Not linked</span>', 'Previewing an event that isn’t linked']
+      ]),
+      wrap('Transcript lines', [
+        [card('', 'Patient', '1:02', 'Mostly when I walk up the hill.'), 'Default'],
+        [card('is-linked', 'Patient', '1:12', 'It\'s more like a pressure.'), 'Source of the selected sentence'],
+        [card('is-demo-dim', 'Patient', '0:13', 'Busy with the grandkids.'), 'Not a source (dimmed)'],
+        [card('is-linked is-speaking', 'Patient', '1:22', 'Down my left arm a little.'), 'Playing now'],
+        [card('is-unclear', 'Patient', '4:40', 'And the <span class="vr-inaud">unclear</span> one at night.', '<i></i><span class="vr-st is-unclear">Not clear</span>'), 'Not clear'],
+        [card('is-omitted', 'Provider', '0:24', 'So what brings you in today?', '<i></i><span class="vr-st">Not in note</span>'), 'Said, not in note']
+      ])
+    ].join('');
+  }
+
+  /* Light & dark */
+  const tl = document.getElementById('themes-list');
+  ['light', 'dark'].forEach(th => {
+    const w = document.createElement('div');
+    w.className = `theme-well ${th}`;
+    w.innerHTML = `<header><b>${th === 'light' ? 'Light' : 'Dark'}</b><span>Family history · first sentence selected</span></header><div class="well"><div id="tw-${th}"></div></div>`;
+    tl.appendChild(w);
+    make(`tw-${th}`, { section: 'family', sentence: 0 }, th);
+  });
+
+  /* Narrow */
+  make('phone', { section: 'hpi', sentence: 1 });
+
+  /* Switches */
+  const dsBtns = [...document.querySelectorAll('#ds-switch button')], thBtns = [...document.querySelectorAll('#theme-switch button')];
+  const reflect = () => {
+    dsBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.ds === DS)));
+    thBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === THEME)));
+  };
+  dsBtns.forEach(b => b.addEventListener('click', () => {
+    DS = b.dataset.ds; try { localStorage.setItem('dp-doc-ds', DS); } catch (e) {}
+    all.forEach(p => p.setDS(DS)); renderSpecs(); reflect(); schedule();
+  }));
+  thBtns.forEach(b => b.addEventListener('click', () => {
+    THEME = b.dataset.theme; root.dataset.theme = THEME; try { localStorage.setItem('dp-doc-theme', THEME); } catch (e) {}
+    themed.forEach(p => p.setTheme(THEME)); renderSpecs(); reflect();
+  }));
+  renderSpecs(); reflect(); schedule();
+})();
+</script>
+</body>
+</html>

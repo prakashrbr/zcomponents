@@ -70,6 +70,30 @@ These were added with the Date Range Picker.
 | radio-ring | `#bedbff` | `rgba(43,127,255,.35)` | `--ds-radio-ring` | Ring around a selected radio dot |
 | primary-hover | `#1447e6` | `#51a2ff` | `--ds-primary-hover` | Primary button hover |
 
+### Speech and provenance
+
+These were added with Visit Replay. Light values come from its spec; dark values are ours (no dark spec yet).
+
+| Token | Light | Dark | CSS variable | Use |
+|---|---|---|---|---|
+| speech-provider | `#a9d3ff` | `#4f8fe6` | `--ds-speech-provider` | Waveform bars and key: provider speech used in the note |
+| speech-patient | `#ffc59d` | `#e0925c` | `--ds-speech-patient` | Patient speech used in the note |
+| speech-omitted | `#dadde2` | `#4a5565` | `--ds-speech-omitted` | Said, but not in the note |
+| speech-unclear | `#f75e65` | `#ff6467` | `--ds-speech-unclear` | Unclear audio bars (key square `#e7000b` in light) |
+| speech-silence | `#dadde2` | `#364153` | `--ds-speech-silence` | 3px silence dots |
+| provenance-link | `#1447e6` | `#8ec5ff` | `--ds-provenance-link` | 1px connector from a statement to its sources |
+| playhead | `#1447e6` | `#51a2ff` | `--ds-playhead` | Playhead line and 8px knob |
+| ai-surface | `#f3f1ff → #fff3fc` | purple .15 → pink .09 | `--ds-ai-surface` | 90° gradient behind AI-drafted text (echoes the smart gradient) |
+| quote-highlight | `rgba(43,127,255,.16)` | `rgba(43,127,255,.32)` | `--ds-quote-highlight` | Phrase in AI text matching the selected statement |
+| dim-opacity | `.45` | `.5` | `--ds-dim-opacity` | Items that aren't part of the current selection |
+
+| timeline-today | `#008236` | `#05df72` | `--ds-timeline-today` | "This visit" dot on a clinical timeline |
+| match-bg / border / text | `#f0fdf4` / `#b9f8cf` / `#016630` | `rgba(0,201,80,.1)` / `rgba(0,201,80,.3)` / `#7bf1a8` | `--ds-match-*` | "Matches" and "Linked by you" badges |
+
+Timeline axis bars use `surface-muted`, range lines `border-subtle` (dashed), and event glyphs `text-muted`.
+
+Section tag markers use `text-disabled` (default), `icon` (hover) and `text-primary` (selected). Statement and source cards use `surface-muted` with a `border-subtle` stroke outside; selected ones use `primary-tint` with a 2px `focus` accent on the left.
+
 ### Inverse (tooltips)
 
 | Token | Light | Dark | CSS variable |

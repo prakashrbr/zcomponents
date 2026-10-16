@@ -3,120 +3,462 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Date Components</title>
+<title>zcomponents</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <script>
   (function () {
-    var t = null;
-    try { t = localStorage.getItem('dp-doc-theme'); } catch (e) {}
+    var t = null, c = null;
+    try { t = localStorage.getItem('dp-doc-theme'); c = localStorage.getItem('zc-nav-collapsed'); } catch (e) {}
     if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     document.documentElement.dataset.theme = t;
+    if (c === '1') document.documentElement.dataset.nav = 'collapsed';
   })();
 </script>
 <style>
   :root {
-    --bg: #ffffff; --panel: #f9fafb; --card: #ffffff; --border: #eaecf0; --border-strong: #d1d5dc;
-    --text: #101828; --muted: #6a7282; --accent: #155dfc; --tint: #e2eefe; --tint-text: #1447e6; --focus: #2b7fff;
+    --bg: #ffffff; --side: #f9fafb; --panel: #f9fafb; --card: #ffffff; --border: #eaecf0; --border-strong: #d1d5dc;
+    --text: #101828; --muted: #6a7282; --nav-text: #364153; --hover: #f2f4f7; --accent: #155dfc; --tint: #e2eefe; --tint-text: #1447e6; --focus: #2b7fff;
+    --scrim: rgba(16, 24, 40, .4);
     color-scheme: light;
   }
   :root[data-theme="dark"] {
-    --bg: #0b111d; --panel: #101828; --card: #030712; --border: #364153; --border-strong: #4a5565;
-    --text: #ffffff; --muted: #99a1af; --accent: #51a2ff; --tint: rgba(43, 127, 255, .20); --tint-text: #8ec5ff; --focus: #2b7fff;
+    --bg: #0b111d; --side: #101828; --panel: #101828; --card: #030712; --border: #364153; --border-strong: #4a5565;
+    --text: #ffffff; --muted: #99a1af; --nav-text: #d1d5dc; --hover: #1e2939; --accent: #51a2ff; --tint: rgba(43, 127, 255, .20); --tint-text: #8ec5ff; --focus: #2b7fff;
+    --scrim: rgba(0, 0, 0, .6);
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; }
-  body { min-height: 100vh; background: var(--bg); color: var(--text); font: 14px/1.55 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 56px 24px 72px; }
-  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; margin-bottom: 40px; }
-  h1 { margin: 0 0 8px; font-size: 32px; font-weight: 500; line-height: 40px; letter-spacing: -.01em; text-wrap: balance; }
-  .lede { margin: 0; max-width: 62ch; color: var(--muted); font-size: 15px; }
-  .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--panel); border: 1px solid var(--border); }
-  .seg button { height: 30px; padding: 0 12px; border: 0; border-radius: 7px; background: none; cursor: pointer; font: 500 13px 'DM Sans', sans-serif; color: var(--muted); }
-  .seg button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
-  .seg button:focus-visible, .card:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.55 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; }
+  svg { flex: none; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* Shell */
+  .shell { display: grid; grid-template-columns: 264px minmax(0, 1fr); height: 100vh; height: 100dvh; transition: grid-template-columns .2s ease; }
+  :root[data-nav="collapsed"] .shell { grid-template-columns: 64px minmax(0, 1fr); }
+
+  /* Side navigation */
+  .side { display: flex; flex-direction: column; min-width: 0; height: 100%; background: var(--side); border-right: 1px solid var(--border); overflow: hidden; }
+  .brand { display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 12px 0 16px; flex: none; }
+  .brand a { display: flex; align-items: center; gap: 10px; min-width: 0; color: inherit; text-decoration: none; border-radius: 8px; }
+  .mark { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9px; background: var(--accent); color: #fff; font-weight: 600; font-size: 15px; flex: none; }
+  .brand-name { font-size: 15px; font-weight: 600; letter-spacing: -.005em; white-space: nowrap; }
+  .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin-left: auto; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; flex: none; }
+  .icon-btn:hover { background: var(--hover); color: var(--text); }
+  .icon-btn[hidden] { display: none; }
+
+  .side nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 12px 16px; }
+  .group { margin: 20px 0 6px; padding: 0 10px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .side nav a { position: relative; display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; margin: 1px 0; border-radius: 8px; color: var(--nav-text); text-decoration: none; font-weight: 500; white-space: nowrap; }
+  .side nav a:hover { background: var(--hover); color: var(--text); }
+  .side nav a[aria-current="page"] { background: var(--tint); color: var(--tint-text); }
+  .side nav a .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .side nav a .n { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 6px; border: 1px solid var(--border); font-size: 11px; font-weight: 600; line-height: 18px; text-align: center; color: var(--muted); }
+  .side nav a[aria-current="page"] .n { border-color: transparent; background: var(--card); color: var(--tint-text); }
+  .side nav a .ext { color: var(--muted); }
+
+  .side-foot { flex: none; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 16px; border-top: 1px solid var(--border); }
+  .seg { display: flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); }
+  .seg button { flex: 1; height: 28px; padding: 0 10px; border: 0; border-radius: 7px; background: none; cursor: pointer; font-weight: 500; font-size: 13px; color: var(--muted); }
+  .seg button:hover { color: var(--text); }
+  .seg button[aria-pressed="true"] { background: var(--tint); color: var(--tint-text); }
+  .newtab { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border-radius: 8px; color: var(--accent); text-decoration: none; font-weight: 500; font-size: 13px; white-space: nowrap; }
+  .newtab:hover { background: var(--hover); }
+  .newtab[hidden] { display: none; }
+  .theme-btn { display: none; }
+
+  /* Collapsed rail */
+  :root[data-nav="collapsed"] .brand { flex-direction: column; justify-content: center; gap: 4px; height: auto; padding: 14px 0 6px; }
+  :root[data-nav="collapsed"] .brand .icon-btn { margin: 0; }
+  :root[data-nav="collapsed"] .side nav { padding: 4px 10px 16px; }
+  :root[data-nav="collapsed"] .group { height: 1px; margin: 14px 6px; padding: 0; overflow: hidden; background: var(--border); color: transparent; }
+  :root[data-nav="collapsed"] .side nav a { justify-content: center; padding: 0; }
+  :root[data-nav="collapsed"] .side-foot { align-items: center; padding: 12px 0 16px; }
+  :root[data-nav="collapsed"] .seg { display: none; }
+  :root[data-nav="collapsed"] .theme-btn { display: inline-flex; margin: 0; }
+  :root[data-nav="collapsed"] .newtab { width: 32px; padding: 0; justify-content: center; }
+  :root[data-nav="collapsed"] .brand-name,
+  :root[data-nav="collapsed"] .side nav a .lbl,
+  :root[data-nav="collapsed"] .side nav a .n,
+  :root[data-nav="collapsed"] .newtab .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :root[data-nav="collapsed"] .collapse-btn svg { transform: scaleX(-1); }
+
+  /* Stage */
+  .stage { display: flex; flex-direction: column; min-width: 0; height: 100%; }
+  .mbar { display: none; }
+  #frame { flex: 1; width: 100%; border: 0; background: var(--bg); }
+  #frame[hidden], .overview[hidden] { display: none; }
+
+  /* Overview */
+  .overview { flex: 1; overflow-y: auto; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 56px 40px 72px; }
+  .eyebrow { margin: 0 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+  h1 { margin: 0 0 10px; font-size: 32px; font-weight: 500; line-height: 40px; letter-spacing: -.01em; text-wrap: balance; }
+  .lede { margin: 0 0 40px; max-width: 62ch; color: var(--muted); font-size: 15px; }
+  h2.sec { margin: 0 0 14px; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 40px; }
   .card {
     display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 24px;
     border: 1px solid var(--border); border-radius: 12px; background: var(--card);
     color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s;
   }
   .card:hover { border-color: var(--border-strong); box-shadow: 0 12px 24px -12px rgba(16, 24, 40, .18); }
-  .num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--tint); color: var(--tint-text); font-weight: 600; font-size: 13px; }
-  .card h2 { margin: 4px 0 0; font-size: 16px; font-weight: 500; line-height: 24px; }
+  .card-top { display: flex; align-items: center; gap: 10px; }
+  .num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: var(--tint); color: var(--tint-text); }
+  .card .n { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .card h3 { margin: 4px 0 0; font-size: 16px; font-weight: 500; line-height: 24px; }
   .card p { margin: 0; color: var(--muted); }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 8px; }
   .tags span { height: 22px; padding: 0 8px; border: 1px solid var(--border); border-radius: 11px; font-size: 11px; font-weight: 500; line-height: 20px; color: var(--muted); }
   .open { color: var(--accent); font-weight: 500; }
-  .note { margin-top: 40px; padding: 20px 24px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); color: var(--muted); }
+  .note { padding: 20px 24px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); color: var(--muted); }
   .note b { color: var(--text); font-weight: 500; }
+  .note + .note { margin-top: 16px; }
+  .note pre { margin: 12px 0 0; padding: 14px 16px; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font: 12px/1.6 ui-monospace, 'Cascadia Code', Consolas, monospace; }
   code { font: 12px ui-monospace, 'Cascadia Code', Consolas, monospace; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); background: var(--card); }
-  @media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } .wrap { padding: 32px 16px 56px; } h1 { font-size: 26px; line-height: 32px; } }
-  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+  pre code { padding: 0; border: 0; background: none; }
+
+  .scrim { display: none; }
+
+  /* Small screens: the side navigation becomes a drawer */
+  @media (max-width: 860px) {
+    .shell, :root[data-nav="collapsed"] .shell { grid-template-columns: minmax(0, 1fr); }
+    .side { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; width: min(288px, 86vw); transform: translateX(-100%); transition: transform .2s ease, visibility 0s .2s; visibility: hidden; box-shadow: 0 24px 48px -12px rgba(16, 24, 40, .3); }
+    .shell.open .side { transform: none; visibility: visible; transition: transform .2s ease; }
+    .scrim { position: fixed; z-index: 20; inset: 0; background: var(--scrim); }
+    .shell.open .scrim { display: block; }
+    .collapse-btn { display: none; }
+    /* Always show the full drawer, even if the rail was collapsed on desktop */
+    :root[data-nav="collapsed"] .brand { flex-direction: row; justify-content: flex-start; gap: 10px; height: 60px; padding: 0 12px 0 16px; }
+    :root[data-nav="collapsed"] .side nav { padding: 4px 12px 16px; }
+    :root[data-nav="collapsed"] .group { height: auto; margin: 20px 0 6px; padding: 0 10px; background: none; color: var(--muted); }
+    :root[data-nav="collapsed"] .side nav a { justify-content: flex-start; padding: 0 10px; }
+    :root[data-nav="collapsed"] .side-foot { align-items: stretch; padding: 12px 16px 16px; }
+    :root[data-nav="collapsed"] .seg { display: flex; }
+    :root[data-nav="collapsed"] .theme-btn { display: none; }
+    :root[data-nav="collapsed"] .newtab { width: auto; padding: 0 10px; justify-content: flex-start; }
+    :root[data-nav="collapsed"] .brand-name,
+    :root[data-nav="collapsed"] .side nav a .lbl,
+    :root[data-nav="collapsed"] .side nav a .n,
+    :root[data-nav="collapsed"] .newtab .lbl { position: static; width: auto; height: auto; overflow: hidden; clip: auto; }
+    .mbar { display: flex; align-items: center; gap: 8px; flex: none; height: 52px; padding: 0 8px; border-bottom: 1px solid var(--border); background: var(--side); }
+    .mbar .icon-btn { margin: 0; color: var(--text); }
+    .mbar-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 15px; }
+  }
+  @media (max-width: 720px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .wrap { padding: 32px 16px 56px; }
+    h1 { font-size: 26px; line-height: 32px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .shell, .side, .card { transition: none !important; } }
 </style>
 </head>
 <body>
-  <main class="wrap">
-    <header>
-      <div>
-        <h1>Date Components</h1>
-        <p class="lede">Date and time inputs for clinical workflows. Each demo shows every state and feature in the custom design, Ant Design and MUI, in light and dark mode.</p>
-      </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-overview" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/><path d="M11.5 15h1"/></symbol>
+    <symbol id="i-range" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M8 15h8"/></symbol>
+    <symbol id="i-datetime" viewBox="0 0 24 24"><path d="M20 11V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h5M4 10h16M9 3v4M15 3v4"/><circle cx="17" cy="17" r="4"/><path d="M17 15.3V17l1.2 1"/></symbol>
+    <symbol id="i-time" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v14H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/></symbol>
+    <symbol id="i-swatch" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.5"/><circle cx="16" cy="8" r="3.5"/><circle cx="12" cy="15.5" r="3.5"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5l-8 8M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9.5 5v14M15.5 10l-2 2 2 2"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell" id="shell">
+  <aside class="side" id="side" aria-label="Site">
+    <div class="brand">
+      <a href="#overview" aria-label="zcomponents overview">
+        <span class="mark" aria-hidden="true">z</span>
+        <span class="brand-name">zcomponents</span>
+      </a>
+      <button type="button" class="icon-btn collapse-btn" id="collapse" aria-label="Collapse navigation" aria-expanded="true" aria-controls="side">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-panel"/></svg>
+      </button>
+      <button type="button" class="icon-btn drawer-close" id="drawer-close" aria-label="Close navigation" hidden>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-close"/></svg>
+      </button>
+    </div>
+
+    <nav aria-label="Components" id="nav">
+      <a href="#overview" data-slug="overview">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-overview"/></svg>
+        <span class="lbl">Overview</span>
+      </a>
+
+      <p class="group">Date &amp; time</p>
+      <a href="#calendar-date-picker" data-slug="calendar-date-picker">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-calendar"/></svg>
+        <span class="lbl">Calendar Date Picker</span><span class="n">1</span>
+      </a>
+      <a href="#date-range-picker" data-slug="date-range-picker">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-range"/></svg>
+        <span class="lbl">Date Range Picker</span><span class="n">2</span>
+      </a>
+      <a href="#actual-date-time" data-slug="actual-date-time">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-datetime"/></svg>
+        <span class="lbl">Actual Date &amp; Time</span><span class="n">4</span>
+      </a>
+      <a href="#time-picker" data-slug="time-picker">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-time"/></svg>
+        <span class="lbl">Time Picker with Presets</span><span class="n">5</span>
+      </a>
+
+      <p class="group">Review</p>
+      <a href="#visit-replay" data-slug="visit-replay">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-wave"/></svg>
+        <span class="lbl">Visit Replay</span>
+      </a>
+
+      <p class="group">Resources</p>
+      <a href="https://github.com/prakashrbr/zcomponents#readme" target="_blank" rel="noopener">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-book"/></svg>
+        <span class="lbl">README</span>
+        <svg class="ext" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-ext"/></svg>
+      </a>
+      <a href="https://github.com/prakashrbr/zcomponents/blob/main/design-tokens/tokens.md" target="_blank" rel="noopener">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-swatch"/></svg>
+        <span class="lbl">Design tokens</span>
+        <svg class="ext" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-ext"/></svg>
+      </a>
+    </nav>
+
+    <div class="side-foot">
+      <a class="newtab" id="newtab" href="#" target="_blank" rel="noopener" hidden>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-ext"/></svg>
+        <span class="lbl">Open demo in new tab</span>
+      </a>
       <div class="seg" role="group" aria-label="Theme" id="theme-switch">
         <button type="button" data-theme="light">Light</button>
         <button type="button" data-theme="dark">Dark</button>
       </div>
+      <button type="button" class="icon-btn theme-btn" id="theme-btn" aria-label="Switch to dark theme">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-moon"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="stage">
+    <header class="mbar">
+      <button type="button" class="icon-btn" id="menu" aria-label="Open navigation" aria-expanded="false" aria-controls="side">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-menu"/></svg>
+      </button>
+      <span class="mbar-title" id="mbar-title">Overview</span>
     </header>
 
-    <div class="grid">
-      <a class="card" href="calendar-date-picker/index.html">
-        <span class="num">1</span>
-        <h2>Calendar Date Picker</h2>
-        <p>Pick one date from a calendar, with recommended dates, scheduled events and unavailable dates that explain why.</p>
-        <div class="tags"><span>Recommended dates</span><span>Events</span><span>Year list</span></div>
-        <span class="open">Open demo →</span>
-      </a>
-      <a class="card" href="date-range-picker/index.html">
-        <span class="num">2</span>
-        <h2>Date Range Picker</h2>
-        <p>Choose a start and end date across two months, with preset ranges, recommended ranges and a Cancel / Done step.</p>
-        <div class="tags"><span>Range preview</span><span>Presets</span><span>Duration</span></div>
-        <span class="open">Open demo →</span>
-      </a>
-      <a class="card" href="actual-date-time/index.html">
-        <span class="num">4</span>
-        <h2>Actual Date &amp; Time</h2>
-        <p>Record exactly when a clinical event happened. Future times are blocked, and the time is checked against related events.</p>
-        <div class="tags"><span>Now</span><span>Timeline checks</span><span>12 / 24-hour</span></div>
-        <span class="open">Open demo →</span>
-      </a>
-      <a class="card" href="time-picker/index.html">
-        <span class="num">5</span>
-        <h2>Time Picker with Presets</h2>
-        <p>Type an exact time or pick a fixed or relative preset. Unavailable and recommended times explain themselves.</p>
-        <div class="tags"><span>Fixed &amp; relative presets</span><span>12h / 24h switch</span></div>
-        <span class="open">Open demo →</span>
-      </a>
-    </div>
+    <main class="overview" id="overview">
+      <div class="wrap">
+        <p class="eyebrow">zcomponents</p>
+        <h1>Date, time and review components</h1>
+        <p class="lede">Components for clinical workflows in plain JavaScript and CSS, with no dependencies or build step. Each demo shows every state and feature in the custom design, Ant Design and MUI, in light and dark mode. Pick one from the side navigation.</p>
 
-    <div class="note">
-      <b>For developers:</b> start with the <code>README.md</code> in this repository, then each component folder's own README. Load <code>calendar-date-picker/datepicker.css</code> and <code>datepicker.js</code> first: they're the shared core for all four components.
-    </div>
-  </main>
+        <h2 class="sec">Date &amp; time</h2>
+        <div class="grid">
+          <a class="card" href="#calendar-date-picker">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-calendar"/></svg></span><span class="n">No. 1</span></div>
+            <h3>Calendar Date Picker</h3>
+            <p>Pick one date from a calendar, with recommended dates, scheduled events and unavailable dates that explain why.</p>
+            <div class="tags"><span>Recommended dates</span><span>Events</span><span>Year list</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+          <a class="card" href="#date-range-picker">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-range"/></svg></span><span class="n">No. 2</span></div>
+            <h3>Date Range Picker</h3>
+            <p>Choose a start and end date across two months, with preset ranges, recommended ranges and a Cancel / Done step.</p>
+            <div class="tags"><span>Range preview</span><span>Presets</span><span>Duration</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+          <a class="card" href="#actual-date-time">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-datetime"/></svg></span><span class="n">No. 4</span></div>
+            <h3>Actual Date &amp; Time</h3>
+            <p>Record exactly when a clinical event happened. Future times are blocked, and the time is checked against related events.</p>
+            <div class="tags"><span>Now</span><span>Timeline checks</span><span>12 / 24-hour</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+          <a class="card" href="#time-picker">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-time"/></svg></span><span class="n">No. 5</span></div>
+            <h3>Time Picker with Presets</h3>
+            <p>Type an exact time or pick a fixed or relative preset. Unavailable and recommended times explain themselves.</p>
+            <div class="tags"><span>Fixed &amp; relative presets</span><span>12h / 24h switch</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+        </div>
+
+        <h2 class="sec">Review</h2>
+        <div class="grid">
+          <a class="card" href="#visit-replay">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><use href="#i-wave"/></svg></span></div>
+            <h3>Visit Replay</h3>
+            <p>Replay a recorded visit beside the AI-drafted note. Every sentence links to what was said and plays that moment.</p>
+            <div class="tags"><span>Waveform tags</span><span>Provenance thread</span><span>Clinical timeline</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+        </div>
+
+        <div class="note">
+          <b>For developers:</b> start with the <code>README.md</code> in this repository, then each component folder's own README. Load <code>calendar-date-picker/datepicker.css</code> and <code>datepicker.js</code> first: they're the shared core for every component.
+        </div>
+        <div class="note">
+          <b>Run the demos locally:</b> serve this folder over HTTP (opening the pages with <code>file://</code> blocks the scripts), then open http://localhost:5174.
+          <pre><code>python -m http.server 5174</code></pre>
+        </div>
+      </div>
+    </main>
+
+    <iframe id="frame" title="Component demo" hidden></iframe>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+</div>
+
 <script>
   (function () {
-    var root = document.documentElement, btns = document.querySelectorAll('#theme-switch button');
-    function reflect() { btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.theme === root.dataset.theme)); }); }
-    btns.forEach(function (b) {
-      b.addEventListener('click', function () {
-        root.dataset.theme = b.dataset.theme;
-        try { localStorage.setItem('dp-doc-theme', b.dataset.theme); } catch (e) {}
-        reflect();
+    var COMPONENTS = {
+      'calendar-date-picker': 'Calendar Date Picker',
+      'date-range-picker': 'Date Range Picker',
+      'actual-date-time': 'Actual Date & Time',
+      'time-picker': 'Time Picker with Presets',
+      'visit-replay': 'Visit Replay'
+    };
+    var root = document.documentElement;
+    var shell = document.getElementById('shell');
+    var side = document.getElementById('side');
+    var overview = document.getElementById('overview');
+    var frame = document.getElementById('frame');
+    var newtab = document.getElementById('newtab');
+    var mbarTitle = document.getElementById('mbar-title');
+    var menuBtn = document.getElementById('menu');
+    var closeBtn = document.getElementById('drawer-close');
+    var collapseBtn = document.getElementById('collapse');
+    var themeBtns = document.querySelectorAll('#theme-switch button');
+    var themeBtn = document.getElementById('theme-btn');
+    var navLinks = document.querySelectorAll('#nav a');
+    var frameSlug = null;
+    var mobile = matchMedia('(max-width: 860px)');
+
+    function store(key, value) { try { localStorage.setItem(key, value); } catch (e) {} }
+
+    function slugFromPath(path) {
+      var m = /\/([^\/]+)\/(?:index\.html)?$/.exec(path || '');
+      return m && COMPONENTS[m[1]] ? m[1] : null;
+    }
+
+    // Routing: #<component-folder> shows that demo, anything else shows the overview
+    function route() {
+      var slug = location.hash.slice(1);
+      show(COMPONENTS[slug] ? slug : 'overview');
+    }
+
+    function show(slug) {
+      var isDemo = slug !== 'overview';
+      navLinks.forEach(function (a) {
+        if (a.dataset.slug === slug) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
       });
+      overview.hidden = isDemo;
+      frame.hidden = !isDemo;
+      if (isDemo && frameSlug !== slug) {
+        frameSlug = slug;
+        frame.src = slug + '/index.html';
+      }
+      if (isDemo) { frame.title = COMPONENTS[slug] + ' demo'; newtab.href = slug + '/index.html'; }
+      newtab.hidden = !isDemo;
+      mbarTitle.textContent = isDemo ? COMPONENTS[slug] : 'Overview';
+      document.title = isDemo ? COMPONENTS[slug] + ' · zcomponents' : 'zcomponents';
+      setDrawer(false);
+    }
+
+    // Links inside a demo (e.g. "2. Date Range Picker →") navigate the iframe: follow along in the nav
+    frame.addEventListener('load', function () {
+      var slug = null;
+      try { slug = slugFromPath(frame.contentWindow.location.pathname); } catch (e) {}
+      if (slug && slug !== frameSlug) {
+        frameSlug = slug;
+        history.replaceState(null, '', '#' + slug);
+        show(slug);
+      }
+      syncFrameTheme();
     });
-    reflect();
+
+    // Theme: shared with the demos through the same localStorage key
+    function reflectTheme() {
+      var dark = root.dataset.theme === 'dark';
+      themeBtns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.theme === root.dataset.theme)); });
+      themeBtn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+      themeBtn.querySelector('use').setAttribute('href', dark ? '#i-sun' : '#i-moon');
+    }
+    function setTheme(t) {
+      root.dataset.theme = t;
+      store('dp-doc-theme', t);
+      reflectTheme();
+      syncFrameTheme();
+    }
+    function syncFrameTheme() {
+      try {
+        var doc = frame.contentDocument, t = root.dataset.theme;
+        if (!doc || !doc.documentElement || doc.documentElement.dataset.theme === t) return;
+        // Use the demo's own switch so its components re-theme too
+        var b = doc.querySelector('button[data-theme="' + t + '"]');
+        if (b) b.click(); else doc.documentElement.dataset.theme = t;
+      } catch (e) {}
+    }
+    themeBtns.forEach(function (b) { b.addEventListener('click', function () { setTheme(b.dataset.theme); }); });
+    themeBtn.addEventListener('click', function () { setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'); });
+    // The demo's own theme switch writes the same key, which fires here
+    addEventListener('storage', function (e) {
+      if (e.key === 'dp-doc-theme' && e.newValue && e.newValue !== root.dataset.theme) {
+        root.dataset.theme = e.newValue;
+        reflectTheme();
+      }
+    });
+
+    // Collapse to an icon rail on desktop
+    function reflectCollapsed() {
+      var collapsed = root.dataset.nav === 'collapsed';
+      collapseBtn.setAttribute('aria-expanded', String(!collapsed));
+      collapseBtn.setAttribute('aria-label', collapsed ? 'Expand navigation' : 'Collapse navigation');
+      navLinks.forEach(function (a) {
+        var lbl = a.querySelector('.lbl');
+        if (collapsed && !mobile.matches) a.title = lbl.textContent; else a.removeAttribute('title');
+      });
+      newtab.title = collapsed && !mobile.matches ? 'Open demo in new tab' : '';
+    }
+    collapseBtn.addEventListener('click', function () {
+      if (root.dataset.nav === 'collapsed') delete root.dataset.nav; else root.dataset.nav = 'collapsed';
+      store('zc-nav-collapsed', root.dataset.nav === 'collapsed' ? '1' : '0');
+      reflectCollapsed();
+    });
+
+    // Drawer on small screens
+    function setDrawer(open) {
+      shell.classList.toggle('open', open);
+      menuBtn.setAttribute('aria-expanded', String(open));
+      closeBtn.hidden = !(open && mobile.matches);
+      if (open) (side.querySelector('[aria-current="page"]') || side.querySelector('a')).focus();
+    }
+    menuBtn.addEventListener('click', function () { setDrawer(true); });
+    closeBtn.addEventListener('click', function () { setDrawer(false); menuBtn.focus(); });
+    document.getElementById('scrim').addEventListener('click', function () { setDrawer(false); });
+    addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && shell.classList.contains('open')) { setDrawer(false); menuBtn.focus(); }
+    });
+    mobile.addEventListener('change', function () { setDrawer(false); reflectCollapsed(); });
+
+    addEventListener('hashchange', route);
+    reflectTheme();
+    reflectCollapsed();
+    route();
   })();
 </script>
 </body>

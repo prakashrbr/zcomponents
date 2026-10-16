@@ -1,6 +1,6 @@
 # Date Components
 
-Four date and time components built from our design specs, in plain JavaScript and CSS with no dependencies or build step. Each comes in three visual skins (the custom spec design, Ant Design and MUI) that all share one color palette, in light and dark.
+Date, time and review components built from our design specs, in plain JavaScript and CSS with no dependencies or build step. Each comes in three visual skins (the custom spec design, Ant Design and MUI) that all share one color palette, in light and dark.
 
 | # | Component | What it's for | Demo |
 |---|---|---|---|
@@ -8,6 +8,7 @@ Four date and time components built from our design specs, in plain JavaScript a
 | 2 | [Date Range Picker](date-range-picker/) | A start and end date, with preset and recommended ranges | [`date-range-picker/index.html`](date-range-picker/index.html) |
 | 4 | [Actual Date & Time](actual-date-time/) | The exact date and time a clinical event happened | [`actual-date-time/index.html`](actual-date-time/index.html) |
 | 5 | [Time Picker with Presets](time-picker/) | A time, typed or picked from fixed and relative presets | [`time-picker/index.html`](time-picker/index.html) |
+|  | [Visit Replay](visit-replay/) | Replay a recorded visit beside the AI-drafted note, with a source for every sentence, and a clinical timeline for past events the patient mentions | [`visit-replay/index.html`](visit-replay/index.html) |
 
 Each folder has its own `README.md` with every option, behaviour, keyboard shortcut and known gap.
 
@@ -18,8 +19,9 @@ calendar-date-picker/   datepicker.js / .css: date picker and the shared core (t
 date-range-picker/      daterangepicker.js / .css: built on the core
 actual-date-time/       datetimepicker.js / .css: subclass of DatePicker
 time-picker/            timepicker.js / .css: uses the core's tokens, tooltip and time parser
+visit-replay/           visitreplay.js / .css: uses the core's tokens, buttons and tooltip; sample-visit.js is demo data
 design-tokens/          tokens.css (--ds-* variables, light and dark) and tokens.md (what each token is for)
-index.html              Landing page linking the four demos
+index.html              Landing page: side navigation that opens each demo (#calendar-date-picker, #time-picker, …)
 ```
 
 ## Using the components
@@ -32,11 +34,13 @@ All components share one core, so always load the date picker files first, then 
 <link rel="stylesheet" href="date-range-picker/daterangepicker.css">   <!-- ranges -->
 <link rel="stylesheet" href="actual-date-time/datetimepicker.css">     <!-- date & time -->
 <link rel="stylesheet" href="time-picker/timepicker.css">              <!-- time picker -->
+<link rel="stylesheet" href="visit-replay/visitreplay.css">            <!-- visit replay -->
 
 <script src="calendar-date-picker/datepicker.js"></script>
 <script src="date-range-picker/daterangepicker.js"></script>
 <script src="actual-date-time/datetimepicker.js"></script>
 <script src="time-picker/timepicker.js"></script>
+<script src="visit-replay/visitreplay.js"></script>
 ```
 
 ```js
@@ -44,6 +48,7 @@ new DatePicker(el, { label: 'Follow-up date', onChange: date => {} });
 new DateRangePicker(el, { label: 'Treatment period', onChange: ({ start, end }) => {} });
 new DateTimePicker(el, { label: 'Discharge date & time', nowButton: true });
 new TimePicker(el, { label: 'Medication time', presets: [{ now: true, label: 'Now' }, { time: '08:00' }] });
+VisitReplay.open({ audio, transcript, sections, onDone: ({ reviewed }) => {} });
 ```
 
 Every component accepts `ds: 'custom' | 'ant' | 'mui'` and `theme: 'light' | 'dark'`, and has `setDS()`, `setTheme()` and `destroy()`.
@@ -66,12 +71,12 @@ Each demo page has switches for the design system and the theme, plus a playgrou
 
 ## Status
 
-| | Date Picker | Range Picker | Date & Time | Time Picker |
-|---|---|---|---|---|
-| Spec coverage | All states and functionalities | Same | Same | Same |
-| Skins | Custom, Ant Design, MUI · light and dark | Same | Same | Same |
-| Tested in | Desktop Chrome, 375px width | Same | Same | Same |
-| Not yet tested | Safari, Firefox, touch devices, screen readers | Same | Same | Same |
+| | Date Picker | Range Picker | Date & Time | Time Picker | Visit Replay |
+|---|---|---|---|---|---|
+| Spec coverage | All states and functionalities | Same | Same | Same | AI answer & provenance, and Clinical timeline |
+| Skins | Custom, Ant Design, MUI · light and dark | Same | Same | Same | Same |
+| Tested in | Desktop Chrome, 375px width | Same | Same | Same | Same |
+| Not yet tested | Safari, Firefox, touch devices, screen readers | Same | Same | Same | Same, plus real audio files |
 
 ## Decisions for the team before launch
 
@@ -82,4 +87,5 @@ Each demo page has switches for the design system and the theme, plus a playgrou
 - **Time zones:** Actual Date & Time returns a local `Date`. Decide how to store it (for example UTC plus the zone), and pass `timeZone` to show the zone in the field.
 - **Dark mode contrast:** white text on the dark selection blue `#2b7fff` is 3.76:1, below WCAG AA (4.5:1) for 14px text. `#155dfc` (5.25:1) passes if an accessibility review requires AA.
 - **Framework wrappers:** for React or Vue, create the component in an effect and call `destroy()` on unmount. The date picker README has a React example.
-- **Demo content:** all dates, appointments and reasons on the demo pages are placeholders.
+- **Visit Replay data:** sentence-to-source links and "not clear" flags come from the AI pipeline; the component displays them but doesn't check them. Pass real `audio` and `peaks` from your audio service.
+- **Demo content:** all dates, appointments, reasons and the sample visit on the demo pages are placeholders.
