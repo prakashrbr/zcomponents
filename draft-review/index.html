@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Draft Review: three playful directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#EEF1F3; --surface:#FFFFFF; --surface-2:#F6F8F9;
+  --ink:#17202B; --ink-2:#4E5A68; --ink-3:#6B7683; --rule:#D8DEE3; --rule-2:#BFC7CF;
+  --link:#1D5DA8; --link-tint:#E4EDF8; --link-hot:#C4D9F2;
+  --flag:#8A5300; --flag-tint:#FBEBCD; --flag-rule:#C98A1F;
+  --ok:#2B6A43; --ok-tint:#DFF0E4;
+  --chart:#5B4B9A; --chart-tint:#ECE8F8;
+  --mine:#3F5566; --mine-tint:#E6ECF0;
+  --pat:#1D5DA8; --doc:#6B7683;
+  --paper:#FFFFFF; --paper-rule:#DCE6F0; --margin-rule:#E7A9A0;
+  --pencil:#6B7480; --penink:#172A4E; --redpencil:#B23E2C;
+  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --hand:"Caveat","Segoe Print","Bradley Hand",cursive;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --canvas:#10151B; --surface:#171E26; --surface-2:#1D252E;
+    --ink:#E6EBF0; --ink-2:#A9B4C0; --ink-3:#8C97A3; --rule:#2B353F; --rule-2:#3D4955;
+    --link:#8DB8F0; --link-tint:#1C2F47; --link-hot:#28497A;
+    --flag:#F2C06B; --flag-tint:#3A2C12; --flag-rule:#B7832A;
+    --ok:#8FD1A6; --ok-tint:#173324;
+    --chart:#B9ABEE; --chart-tint:#2A2447;
+    --mine:#B3C4D1; --mine-tint:#243039;
+    --pat:#8DB8F0; --doc:#8C97A3;
+    --paper:#1A2029; --paper-rule:#27313C; --margin-rule:#6E3A33;
+    --pencil:#8D97A3; --penink:#EAF0FA; --redpencil:#F08A78; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#10151B; --surface:#171E26; --surface-2:#1D252E;
+  --ink:#E6EBF0; --ink-2:#A9B4C0; --ink-3:#8C97A3; --rule:#2B353F; --rule-2:#3D4955;
+  --link:#8DB8F0; --link-tint:#1C2F47; --link-hot:#28497A;
+  --flag:#F2C06B; --flag-tint:#3A2C12; --flag-rule:#B7832A;
+  --ok:#8FD1A6; --ok-tint:#173324;
+  --chart:#B9ABEE; --chart-tint:#2A2447;
+  --mine:#B3C4D1; --mine-tint:#243039;
+  --pat:#8DB8F0; --doc:#8C97A3;
+  --paper:#1A2029; --paper-rule:#27313C; --margin-rule:#6E3A33;
+  --pencil:#8D97A3; --penink:#EAF0FA; --redpencil:#F08A78; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px)}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--link);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.page{max-width:1080px;margin:0 auto;padding:40px 22px 96px}
+.hero h1{font-size:44px;line-height:1.08;letter-spacing:-0.02em;font-weight:600;margin:0 0 12px;max-width:18ch}
+.hero p{font-family:var(--serif);font-size:20px;line-height:1.5;max-width:58ch;margin:0 0 18px;color:var(--ink)}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px;padding:0;list-style:none}
+.jump a{display:inline-block;border:1px solid var(--rule-2);border-radius:20px;padding:6px 14px;text-decoration:none;color:var(--ink);font-size:14.5px;background:var(--surface)}
+.jump a:hover{background:var(--surface-2)}
+.concept{padding-top:64px}
+.concept h2{font-size:32px;line-height:1.15;letter-spacing:-0.01em;font-weight:600;margin:0 0 6px}
+.concept .idea{font-family:var(--serif);font-size:19px;line-height:1.55;max-width:62ch;margin:0 0 16px}
+.try{font-size:14px;color:var(--ink-2);margin:0 0 10px}
+.stage{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:18px;position:relative}
+.why{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:18px}
+@media (max-width:760px){.why{grid-template-columns:1fr}}
+.why h3{font-size:16px;font-weight:600;margin:0 0 4px}
+.why p,.why li{font-size:15px;color:var(--ink-2);margin:0 0 6px}
+.why ul{padding-left:18px;margin:0}
+.btn{border:1px solid var(--rule-2);background:var(--surface);border-radius:8px;padding:7px 14px;font-size:14px;min-height:38px}
+.btn:hover{background:var(--surface-2)}
+.btn.solid{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn.small{font-size:13px;padding:4px 10px;min-height:32px}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--link)}
+
+/* A. Threads */
+.board{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 110px minmax(0,1fr);gap:0}
+.b-col h4,.rp h4{font-size:13px;font-weight:500;color:var(--ink-2);margin:0 0 8px}
+.b-claim{display:block;width:100%;text-align:left;border:0;background:transparent;font-family:var(--serif);font-size:17px;line-height:1.45;padding:9px 10px;border-radius:8px;margin:2px 0;position:relative;z-index:2}
+.b-claim:hover,.b-claim.on{background:var(--link-tint)}
+.b-claim[data-kind="partial"],.b-claim[data-kind="unsupported"]{box-shadow:inset 3px 0 0 var(--flag-rule)}
+.b-claim[data-kind="chart"]{box-shadow:inset 3px 0 0 var(--chart)}
+.b-claim.cut{text-decoration:line-through;color:var(--ink-3)}
+.b-claim.kept::after{content:"kept by you";font-family:var(--sans);font-size:12px;color:var(--mine);margin-left:8px}
+.b-line{font-size:14.5px;padding:7px 10px;border-radius:8px;margin:2px 0;position:relative;z-index:2;border-left:3px solid transparent}
+.b-line .w{display:block;font-size:12px;color:var(--ink-2);font-weight:500}
+.b-line.small{color:var(--ink-3)}
+.b-line.on{background:var(--link-tint);border-left-color:var(--link)}
+.b-chart{font-size:14px;padding:7px 10px;border:1px dotted var(--chart);border-radius:8px;margin:0 0 8px;position:relative;z-index:2}
+.b-chart.on{background:var(--chart-tint)}
+.b-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+.th{fill:none;stroke-width:1.6;opacity:.38;transition:opacity .15s ease-out,stroke-width .15s ease-out}
+.th.linked{stroke:var(--link)}
+.th.chart{stroke:var(--chart);stroke-dasharray:2 4}
+.th.partial{stroke:var(--flag-rule);stroke-dasharray:7 5}
+.th.loose{stroke:var(--flag-rule)}
+.th.tied{stroke:var(--mine)}
+.board.focus .th{opacity:.1}
+.board.focus .th.hot{opacity:1;stroke-width:2.6}
+.knot{fill:var(--flag-rule)}
+.knot.tied{fill:var(--mine)}
+.loose-lbl{font-family:var(--hand);font-size:17px;fill:var(--redpencil)}
+.sway{transform-box:view-box;animation:sway 3.2s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(0deg)}50%{transform:rotate(7deg)}}
+.pulse{fill:var(--link)}
+.slip{margin-top:14px;border:1px solid var(--rule);border-radius:10px;padding:12px 14px;background:var(--surface-2);min-height:54px;font-size:15px}
+.slip .q{border-left:3px solid var(--link);padding-left:10px;margin:6px 0}
+.slip .q.c{border-left-color:var(--chart)}
+.slip .who{font-size:12px;color:var(--ink-2)}
+.slip .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.slip.flag{background:var(--flag-tint);border-color:var(--flag-rule)}
+.narrow-note{display:none;font-size:13px;color:var(--ink-3);margin:8px 0 0}
+@media (max-width:720px){
+  .board{grid-template-columns:minmax(0,1fr)}
+  .b-gut,.b-svg{display:none}
+  .narrow-note{display:block}
+}
+
+/* B. Replay */
+.rp-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.rp-time{font-family:var(--mono);font-size:14px;color:var(--ink-2)}
+.rp-tag{font-size:13px;color:var(--ink-3)}
+.rp-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);margin-left:auto}
+.rp-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.rp-chart{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;border:1px dotted var(--chart);border-radius:8px;padding:4px 10px;margin-bottom:10px;color:var(--ink)}
+.rp-chart b{font-weight:500;color:var(--chart)}
+.ribbon{position:relative;height:150px;margin:0 0 6px;user-select:none}
+.pins{position:absolute;left:0;right:0;top:0;height:44px}
+.pin{position:absolute;top:0;transform:translateX(-50%);border:0;background:transparent;padding:0;width:28px;height:44px;display:flex;flex-direction:column;align-items:center}
+.pin .d{width:14px;height:14px;transform:rotate(45deg);border:2px solid var(--link);background:var(--surface);border-radius:2px;margin-top:4px;transition:background .15s ease-out}
+.pin .stem{width:2px;flex:1;background:var(--link);opacity:.5}
+.pin.partial .d{border-color:var(--flag-rule)}
+.pin.partial .stem{background:var(--flag-rule)}
+.pin.passed .d{background:var(--link)}
+.pin.partial.passed .d{background:var(--flag-rule)}
+.pin.on .d{outline:3px solid var(--link-hot)}
+.wave{position:absolute;left:0;right:0;top:44px;height:78px;width:100%}
+.wave rect{transition:opacity .1s linear}
+.bar-doc{fill:var(--doc)} .bar-pat{fill:var(--pat)} .bar-sil{fill:var(--rule-2)}
+.utt{position:absolute;top:128px;height:10px;border-radius:3px;transform:translateX(0)}
+.utt.used{background:var(--ink-2)}
+.utt.unused{border:1.5px solid var(--ink-3);background:transparent}
+.playhead{position:absolute;top:40px;bottom:6px;width:2px;background:var(--ink);pointer-events:none}
+.playhead::before{content:"";position:absolute;top:-4px;left:-5px;width:12px;height:12px;border-radius:50%;background:var(--ink)}
+.ribbon input[type=range]{position:absolute;left:0;right:0;top:44px;height:94px;width:100%;margin:0;opacity:0;cursor:ew-resize}
+.ribbon input[type=range]:focus-visible + .playhead{outline:2px solid var(--link);outline-offset:3px}
+.cap{min-height:64px;border-top:1px solid var(--rule);padding:12px 2px 4px;font-family:var(--serif);font-size:20px;line-height:1.4}
+.cap .w{display:block;font-family:var(--sans);font-size:12.5px;color:var(--ink-2)}
+.cap.empty{color:var(--ink-3);font-size:16px}
+.rp-note{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;margin-top:10px}
+@media (max-width:760px){.rp-note{grid-template-columns:1fr}}
+.rp-claim{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:8px;font-family:var(--serif);font-size:17px;color:var(--ink-3);border:1px dashed var(--rule-2);margin:0 0 6px;transition:color .3s ease-out,background .3s ease-out,border-color .3s ease-out,transform .3s ease-out}
+.rp-claim .tc{font-family:var(--mono);font-size:12px;min-width:38px;color:var(--ink-3)}
+.rp-claim.landed{color:var(--ink);border-style:solid;border-color:transparent;background:var(--link-tint)}
+.rp-claim.landed[data-kind="partial"]{background:var(--flag-tint)}
+.rp-claim.landed[data-kind="chart"]{background:var(--chart-tint)}
+.rp-claim.pop{transform:translateY(-2px)}
+.rp-claim .fl{font-family:var(--sans);font-size:12px;color:var(--flag);margin-left:auto;white-space:nowrap}
+.tray{border:1px dashed var(--flag-rule);border-radius:10px;padding:10px 12px;align-self:start}
+.tray h4{margin:0 0 6px;font-size:13px;color:var(--flag);font-weight:600}
+.tray .rp-claim{border-color:var(--flag-rule);color:var(--ink)}
+.tray p{font-size:13.5px;color:var(--ink-2);margin:6px 0 0}
+.tray.end{background:var(--flag-tint)}
+
+/* C. Pencil to ink */
+.paper{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:22px 0 18px;position:relative}
+.paper::before{content:"";position:absolute;top:0;bottom:0;left:64px;width:1.5px;background:var(--margin-rule)}
+.gauge{display:flex;align-items:center;gap:12px;padding:0 22px 14px 84px;flex-wrap:wrap}
+.gauge .lbl{font-size:13.5px;color:var(--ink-2)}
+.gauge .tube{flex:1;min-width:120px;max-width:260px;height:8px;border-radius:4px;background:var(--paper-rule);overflow:hidden}
+.gauge .tube span{display:block;height:100%;width:0;background:var(--penink);transition:width .4s ease-out}
+.psec{margin-bottom:6px}
+.psec-t{font-size:12.5px;color:var(--ink-2);font-weight:500;padding:6px 22px 2px 84px}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:16px;border-bottom:1px solid var(--paper-rule);padding:0 22px 0 84px;min-height:44px;align-items:start}
+@media (max-width:760px){.prow{grid-template-columns:minmax(0,1fr);gap:0}}
+.pl{display:block;text-align:left;border:0;background:transparent;padding:9px 0;font-family:var(--serif);font-size:18px;line-height:1.5;color:var(--pencil);letter-spacing:.005em;width:100%}
+.pl .tx{background-image:linear-gradient(90deg,var(--penink) 0 50%,var(--pencil) 50% 100%);background-size:200% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.pl.inked .tx{background-position:0 0;transition:background-position .6s ease-out}
+.pl .nib{font-family:var(--sans);font-size:11.5px;color:var(--mine);margin-left:8px;-webkit-text-fill-color:currentColor}
+.pl.open{background:linear-gradient(0deg,var(--link-tint),var(--link-tint));border-radius:4px}
+.margin{padding:8px 0}
+.mnote{display:block;border:0;background:transparent;padding:0;text-align:left;font-family:var(--hand);font-size:21px;line-height:1.15;color:var(--redpencil);transform:rotate(-1.5deg)}
+.mnote::before{content:"↰ "}
+.pslip{border:1px solid var(--rule);background:var(--surface);border-radius:8px;padding:10px 12px;font-size:14px;margin:6px 0 10px;box-shadow:0 2px 0 var(--paper-rule)}
+.pslip .q{font-family:var(--serif);font-size:15px;border-left:3px solid var(--link);padding-left:8px;margin:4px 0}
+.pslip .q.c{border-left-color:var(--chart)}
+.pslip .who{font-family:var(--sans);font-size:12px;color:var(--ink-2)}
+.pslip .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pslip.flag{border-color:var(--flag-rule)}
+.pslip input{width:100%;font:inherit;font-family:var(--serif);font-size:16px;border:1px solid var(--rule-2);border-radius:6px;padding:6px 8px;background:var(--paper);color:var(--ink)}
+.padd{padding:4px 22px 8px 84px;display:flex;gap:8px;flex-wrap:wrap}
+.addf{display:flex;gap:8px;flex:1;min-width:240px}
+.addf input{flex:1;font-family:var(--serif);font-size:16px;border:0;border-bottom:1.5px solid var(--rule-2);background:transparent;color:var(--penink);padding:6px 2px}
+.addf input:focus-visible{outline:none;border-bottom-color:var(--link)}
+.signwrap{padding:18px 22px 4px 84px}
+.signmsg{font-size:14px;color:var(--ink-2);margin:0 0 8px}
+.hold{position:relative;display:flex;align-items:flex-end;gap:14px;width:min(420px,100%);height:86px;border:0;border-bottom:1.5px solid var(--ink-2);background:transparent;padding:0 0 6px;text-align:left;touch-action:none;-webkit-user-select:none;user-select:none}
+.hold .ht{font-size:14px;color:var(--ink-2)}
+.hold svg{position:absolute;left:0;bottom:4px;width:100%;height:76px;pointer-events:none}
+.hold path{fill:none;stroke:var(--penink);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.alt{font-size:13px;margin-top:8px}
+.stamp{display:inline-block;margin-top:10px;font-family:var(--sans);font-weight:600;font-size:14px;color:var(--ok);border:2px solid var(--ok);border-radius:6px;padding:4px 10px;transform:rotate(-2deg)}
+.pl .asis{font-family:var(--sans);font-size:11.5px;color:var(--flag);margin-left:8px;-webkit-text-fill-color:currentColor}
+.pl.removed{display:none}
+
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--surface);margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--rule)}
+th{font-weight:600;background:var(--surface-2);font-size:13.5px;color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+.left h3{font-size:17px;font-weight:600;margin:20px 0 4px}
+.left p{max-width:68ch;color:var(--ink-2);margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="live" class="sr" aria-live="polite"></div>
+<div class="page">
+  <header class="hero">
+    <h1>Reviewing an AI note shouldn't feel like filling in a form</h1>
+    <p>Three directions for the Draft Review component that trade stacked cards for physical, playful metaphors. Each one keeps the safety rules intact: every claim is traceable, missing sources are obvious, and nothing is final until a clinician says so.</p>
+    <ul class="jump">
+      <li><a href="#threads">A. Threads</a></li>
+      <li><a href="#replay">B. Visit replay</a></li>
+      <li><a href="#ink">C. Pencil to ink</a></li>
+      <li><a href="#left-out">Ideas left out</a></li>
+      <li><a href="#compare">Compare</a></li>
+    </ul>
+  </header>
+
+  <section class="concept" id="threads" aria-labelledby="ha">
+    <h2 id="ha">A. Threads</h2>
+    <p class="idea">A detective's string board. Every sentence in the note is tied to the words it came from with a thread. Claims with no source have a loose end, swinging free.</p>
+    <p class="try">Hover or tab through the note. Click a sentence to send a pulse down its thread. Try the two amber sentences.</p>
+    <div class="stage">
+      <div class="board" id="board">
+        <div class="b-col"><h4>Draft note</h4><div id="bNote"></div></div>
+        <div class="b-gut" aria-hidden="true"></div>
+        <div class="b-col"><h4>What was said</h4><div id="bTx"></div></div>
+        <svg class="b-svg" id="bSvg" aria-hidden="true"></svg>
+      </div>
+      <div class="slip" id="bSlip">Pick a sentence to follow its thread.</div>
+      <p class="narrow-note">Threads need width. On phones this direction falls back to the source slip under each sentence.</p>
+    </div>
+    <div class="why">
+      <div><h3>Why it's more than decoration</h3><p>The loose thread turns the most dangerous case, a claim with no source, into the most visible thing on screen. Linking claims to sources is the pattern with the strongest evidence behind it. "Cut the thread" and "Tie it off" make resolving a check a single, memorable gesture.</p></div>
+      <div><h3>Watch for</h3><ul><li>Gets tangled past about 15 claims per view; filter threads to the hovered section.</li><li>Needs a wide screen; phones need the fallback.</li><li>The threads are decorative for screen readers; every link must also exist in text.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="concept" id="replay" aria-labelledby="hb">
+    <h2 id="hb">B. Visit replay</h2>
+    <p class="idea">The visit as a scrubbable recording. As the playhead moves, each sentence of the note appears at the moment it was said. Sentences that were never heard never appear, and parts of the conversation that didn't make it into the note stay hollow on the timeline.</p>
+    <p class="try">Press play, or drag across the recording. Click any sentence to jump to where it was said. Then find the thing the patient said that never made it into the note.</p>
+    <div class="stage rp">
+      <div class="rp-top">
+        <button class="btn solid" id="rpPlay" aria-pressed="false">Play replay</button>
+        <button class="btn" id="rpEnd">Jump to end</button>
+        <span class="rp-time" id="rpTime">0:00 / 4:32</span>
+        <span class="rp-tag">Plays at 12× speed</span>
+        <span class="rp-legend"><span><i style="background:var(--pat)"></i>Patient</span><span><i style="background:var(--doc)"></i>Clinician</span><span><i style="border:1.5px solid var(--ink-3)"></i>Said, not in note</span></span>
+      </div>
+      <div class="rp-chart"><b>Before the visit</b> From the chart: LDL 168 mg/dL, 12 Mar 2026</div>
+      <div class="ribbon" id="ribbon">
+        <div class="pins" id="pins"></div>
+        <svg class="wave" id="wave" viewBox="0 0 1000 78" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div id="utts" aria-hidden="true"></div>
+        <input type="range" id="rpRange" min="0" max="272" step="1" value="0" aria-label="Position in the visit recording" aria-valuetext="0 minutes 0 seconds">
+        <div class="playhead" id="playhead" style="left:0%"></div>
+      </div>
+      <div class="cap empty" id="cap">The visit hasn't started yet.</div>
+      <div class="rp-note">
+        <div><h4>Draft note, assembling as it's heard</h4><div id="rpClaims"></div></div>
+        <div class="tray" id="tray"><h4>Never heard in the visit</h4><div id="trayClaims"></div><p id="trayMsg">These stay here until the end of the replay.</p></div>
+      </div>
+    </div>
+    <div class="why">
+      <div><h3>Why it's more than decoration</h3><p>It's built for late signing, when the visit is a fading memory: a 20-second replay refreshes it. Hollow marks on the timeline show things said but not written down, which surfaces omissions, the most common scribe error, without a checklist.</p></div>
+      <div><h3>Watch for</h3><ul><li>Time order differs from note order; keep the note in note order and only animate arrival.</li><li>Replay must not become required. It's a mode, not a gate.</li><li>Audio retention policies may remove the recording; the timeline still works from the transcript.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="concept" id="ink" aria-labelledby="hc">
+    <h2 id="hc">C. Pencil to ink</h2>
+    <p class="idea">The AI writes in pencil. When you check a line, it turns to ink. A second reader has left red-pencil notes in the margin where something looks off. You sign by holding the pen to the line.</p>
+    <p class="try">Click a grey line to see its source, then ink it. Read the margin notes. Write a line of your own. Hold the signature line to sign.</p>
+    <div class="stage" style="padding:12px">
+      <div class="paper" id="paper">
+        <div class="gauge"><span class="lbl" id="gLbl">In ink: 0 of 8 lines</span><div class="tube" aria-hidden="true"><span id="gBar"></span></div></div>
+        <div id="pBody"></div>
+        <div class="signwrap">
+          <p class="signmsg" id="signMsg"></p>
+          <button class="hold" id="hold" aria-describedby="signMsg"><span class="ht" id="holdTxt">Hold to sign</span>
+            <svg viewBox="0 0 420 76" aria-hidden="true"><path id="sig" d="M18 52 C 30 20, 44 18, 46 44 C 48 64, 58 60, 66 36 C 72 20, 80 26, 78 46 C 76 60, 92 58, 100 40 C 106 28, 114 30, 116 44 C 118 56, 130 54, 140 38 C 150 22, 160 28, 158 46 C 156 58, 172 56, 186 42 C 200 30, 214 34, 230 44 C 250 54, 272 40, 300 38 C 330 36, 360 44, 398 30"/></svg>
+          </button>
+          <div class="alt"><button class="btn quiet small" id="clickSign">Sign with a click instead</button></div>
+          <div id="stampWrap"></div>
+        </div>
+      </div>
+    </div>
+    <div class="why">
+      <div><h3>Why it's more than decoration</h3><p>Pencil and ink make authorship physical: the clinician can see at a glance how much of the page they've vouched for. Margin notes put flags beside the text, not over it, like a colleague reviewing a draft. Hold-to-sign turns signing into a deliberate moment instead of a reflex click.</p></div>
+      <div><h3>Watch for</h3><ul><li>Pencil grey must still pass 4.5:1 contrast; unchecked text is still clinical text.</li><li>Holding is hard for some people, so a click alternative is always shown.</li><li>"Ink the rest" per section must skip flagged lines, or the metaphor becomes a rubber stamp.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="concept left" id="left-out" aria-labelledby="hd">
+    <h2 id="hd">Ideas left out, and why</h2>
+    <h3>Swipe to accept, card by card</h3>
+    <p>Fun and fast, which is the problem. It turns acceptance into a reflex and strips each sentence of its context. The evidence on automation bias points the other way.</p>
+    <h3>Points, streaks, and leaderboards</h3>
+    <p>They reward speed. Whether clinicians sign drafts unedited already varies mostly by individual habit; a game layer would push the wrong habit.</p>
+    <h3>Fog over unreviewed text</h3>
+    <p>Blurring what hasn't been checked hides clinical content, hurts accessibility, and removes context needed to judge neighbouring sentences.</p>
+    <h3>Chat with your note as the main review</h3>
+    <p>Useful as a helper, but it puts the burden of knowing what to ask on the clinician, and omissions stay invisible.</p>
+  </section>
+
+  <section class="concept" id="compare" aria-labelledby="he">
+    <h2 id="he">Compare</h2>
+    <p class="try">Effort is a relative judgement, not a measured estimate.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Direction</th><th>The fun part</th><th>Strongest at</th><th>Biggest risk</th><th>Relative effort</th></tr></thead>
+      <tbody>
+        <tr><td>A. Threads</td><td>Pulling a thread, cutting a loose end</td><td>Making unsupported claims impossible to miss</td><td>Clutter and small screens</td><td>Medium</td></tr>
+        <tr><td>B. Visit replay</td><td>Scrubbing the visit like a video</td><td>Late signing and spotting omissions</td><td>Becoming a slow, mandatory step</td><td>Medium to high</td></tr>
+        <tr><td>C. Pencil to ink</td><td>Watching the page ink in; holding to sign</td><td>Authorship and a deliberate sign-off</td><td>Contrast of pencil text; hold accessibility</td><td>Medium</td></tr>
+      </tbody>
+    </table></div>
+    <p class="try" style="margin-top:14px">They combine well: pencil to ink as the everyday note, threads appearing on hover on wide screens, and replay as a mode for notes signed the next day.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var live=document.getElementById('live');
+  function say(m){live.textContent='';setTimeout(function(){live.textContent=m;},30);}
+  function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function fmt(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);}
+
+  var DUR=272;
+  var T=[
+    {id:'t1',s:5,e:8,who:'Clinician',text:'What brings you in today?'},
+    {id:'t2',s:9,e:16,who:'Patient',text:"I've been getting this tightness in my chest, maybe three weeks now."},
+    {id:'t3',s:17,e:22,who:'Patient',text:'Mostly when I walk up the hill to the bus stop.'},
+    {id:'t4',s:34,e:39,who:'Patient',text:"After a couple of minutes resting, it's gone."},
+    {id:'t5',s:44,e:46,who:'Clinician',text:'Any shortness of breath with it?'},
+    {id:'t6',s:47,e:49,who:'Patient',text:'No, just the tightness.'},
+    {id:'t7',s:58,e:62,who:'Patient',text:"I've been waking up a bit dizzy some mornings too."},
+    {id:'t8',s:66,e:71,who:'Patient',text:'My dad had a heart attack. He was 62.'},
+    {id:'t9',s:95,e:100,who:'Patient',text:'Sorry, busy month with the grandkids staying over.',small:true},
+    {id:'t10',s:228,e:236,who:'Clinician',text:'This could be angina, most likely the stable kind.'},
+    {id:'t12',s:252,e:261,who:'Clinician',text:"Let's start a statin and recheck your cholesterol in six weeks."},
+    {id:'t14',s:265,e:270,who:'Clinician',text:"Let's see how the stress test goes first."}
+  ];
+  var TBY={};T.forEach(function(t){TBY[t.id]=t;});
+  var CHART={label:'From the chart',text:'Lipid panel, 12 Mar 2026: LDL 168 mg/dL'};
+  function claims(){return [
+    {id:'c1',sec:'History',text:'Chest tightness for 3 weeks when walking uphill',src:['t2','t3'],kind:'linked'},
+    {id:'c2',sec:'History',text:'Eases within a few minutes of rest',src:['t4'],kind:'linked'},
+    {id:'c3',sec:'History',text:'Denies shortness of breath',src:['t5','t6'],kind:'linked'},
+    {id:'c4',sec:'History',text:'Father had a heart attack at 62',src:['t8'],kind:'linked'},
+    {id:'c5',sec:'Results',text:'LDL 168 mg/dL in March',src:['chart'],kind:'chart'},
+    {id:'c8',sec:'Plan',text:'Likely stable angina',src:['t10'],kind:'linked'},
+    {id:'c6',sec:'Plan',text:'Start atorvastatin 40 mg daily',src:['t12'],kind:'partial',reason:'A statin was mentioned, but no drug or dose was said.',note:'dose? not said',fix:'Start a statin, dose to be decided'},
+    {id:'c7',sec:'Plan',text:'Advised aspirin 81 mg daily',src:[],kind:'unsupported',reason:'Nothing in the visit or the chart supports this.',note:"where's this from?"}
+  ];}
+  function quoteHTML(src){
+    if(src==='chart') return '<div class="q c"><div class="who">'+CHART.label+'</div>'+esc(CHART.text)+'</div>';
+    var t=TBY[src]; return '<div class="q"><div class="who">'+t.who+', '+fmt(t.s)+'</div>\u201C'+esc(t.text)+'\u201D</div>';
+  }
+
+  /* ---------- A. Threads ---------- */
+  (function(){
+    var board=document.getElementById('board'), note=document.getElementById('bNote'), tx=document.getElementById('bTx'), svg=document.getElementById('bSvg'), slip=document.getElementById('bSlip');
+    var C=claims(), pinned=null, pulses=[];
+    var ch=el('div','b-chart','<span class="sr">Chart item: </span>'+esc(CHART.text)); ch.id='b-chart'; tx.appendChild(ch);
+    T.forEach(function(t){ var d=el('div','b-line'+(t.small?' small':''),'<span class="w">'+t.who+', '+fmt(t.s)+'</span>'+esc(t.text)); d.id='b-'+t.id; tx.appendChild(d); });
+    C.forEach(function(c){
+      var b=el('button','b-claim',esc(c.text)); b.setAttribute('data-id',c.id); b.setAttribute('data-kind',c.kind);
+      b.setAttribute('aria-label',c.text+'. '+label(c)); c.btn=b; note.appendChild(b);
+    });
+    function label(c){ if(c.kind==='unsupported') return 'No source found. Needs a check.'; if(c.kind==='partial') return 'Partly supported. Needs a check.'; if(c.kind==='chart') return 'From the chart.'; return 'Said in the visit, '+c.src.map(function(s){return fmt(TBY[s].s);}).join(' and ')+'.'; }
+    function target(s){return document.getElementById(s==='chart'?'b-chart':'b-'+s);}
+    function draw(){
+      var br=board.getBoundingClientRect(); svg.setAttribute('viewBox','0 0 '+br.width+' '+br.height);
+      svg.innerHTML='';
+      C.forEach(function(c){
+        if(c.cut) return;
+        var r=c.btn.getBoundingClientRect();
+        var x1=r.right-br.left-4, y1=r.top-br.top+r.height/2;
+        if(!c.src.length){
+          var g=document.createElementNS('http://www.w3.org/2000/svg','g');
+          g.setAttribute('data-claim',c.id);
+          if(!c.kept) g.setAttribute('class','sway');
+          g.style.transformOrigin=x1+'px '+y1+'px';
+          var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+          p.setAttribute('d','M'+x1+' '+y1+' C '+(x1+34)+' '+y1+', '+(x1+46)+' '+(y1+22)+', '+(x1+40)+' '+(y1+50));
+          p.setAttribute('class','th '+(c.kept?'tied':'loose')); p.setAttribute('data-claim',c.id);
+          var k=document.createElementNS('http://www.w3.org/2000/svg','circle'); k.setAttribute('cx',x1+40); k.setAttribute('cy',y1+53); k.setAttribute('r',4.5); k.setAttribute('class','knot'+(c.kept?' tied':''));
+          g.appendChild(p); g.appendChild(k);
+          if(!c.kept){ var tl=document.createElementNS('http://www.w3.org/2000/svg','text'); tl.setAttribute('x',x1+50); tl.setAttribute('y',y1+60); tl.setAttribute('class','loose-lbl'); tl.textContent='loose end'; g.appendChild(tl); }
+          svg.appendChild(g); return;
+        }
+        c.src.forEach(function(s){
+          var tr=target(s).getBoundingClientRect();
+          var x2=tr.left-br.left+2, y2=tr.top-br.top+tr.height/2, mx=(x2-x1);
+          var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+          p.setAttribute('d','M'+x1+' '+y1+' C '+(x1+mx*0.5)+' '+y1+', '+(x2-mx*0.5)+' '+y2+', '+x2+' '+y2);
+          p.setAttribute('class','th '+(c.kind==='chart'?'chart':c.kind==='partial'?'partial':'linked')); p.setAttribute('data-claim',c.id); p.setAttribute('data-src',s);
+          svg.appendChild(p);
+        });
+      });
+      if(pinned) hot(pinned);
+    }
+    function clear(){ board.classList.remove('focus'); board.querySelectorAll('.on').forEach(function(e){e.classList.remove('on');}); svg.querySelectorAll('.hot').forEach(function(e){e.classList.remove('hot');}); }
+    function hot(c){
+      clear(); if(c.cut) return; board.classList.add('focus'); c.btn.classList.add('on');
+      svg.querySelectorAll('[data-claim="'+c.id+'"]').forEach(function(p){p.classList.add('hot');});
+      c.src.forEach(function(s){ target(s).classList.add('on'); });
+    }
+    function restore(){ clear(); if(pinned) hot(pinned); }
+    function pulse(c){
+      if(reduce) return;
+      svg.querySelectorAll('path[data-claim="'+c.id+'"][data-src]').forEach(function(p){
+        var len=p.getTotalLength(), dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        dot.setAttribute('r',4); dot.setAttribute('class','pulse'); svg.appendChild(dot);
+        var st=null; function step(ts){ if(!st) st=ts; var k=Math.min(1,(ts-st)/650); var pt=p.getPointAtLength(len*k); dot.setAttribute('cx',pt.x); dot.setAttribute('cy',pt.y); if(k<1) requestAnimationFrame(step); else dot.remove(); }
+        requestAnimationFrame(step);
+      });
+    }
+    function showSlip(c){
+      slip.className='slip'+((c.kind==='partial'||c.kind==='unsupported')&&!c.kept&&!c.fixed?' flag':'');
+      var h='';
+      if(c.cut){ h='<strong>Thread cut.</strong> "'+esc(c.text)+'" was removed from the note. <div class="acts"><button class="btn small" data-a="undo">Undo</button></div>'; }
+      else if(c.kind==='unsupported' && !c.kept){ h='<strong>Loose end.</strong> '+esc(c.reason)+'<div class="acts"><button class="btn small" data-a="cut">Cut the thread</button><button class="btn small" data-a="tie">Tie it off, I discussed it</button></div>'; }
+      else if(c.kind==='partial' && !c.fixed && !c.kept){ h='<strong>Frayed thread.</strong> '+esc(c.reason)+c.src.map(quoteHTML).join('')+'<div class="acts"><button class="btn small" data-a="fix">Use "'+esc(c.fix)+'"</button><button class="btn small" data-a="tie">Keep 40 mg</button><button class="btn small" data-a="cut">Cut the thread</button></div>'; }
+      else if(c.kept){ h='<strong>Tied off by you.</strong> Kept as written.'+(c.src.length?c.src.map(quoteHTML).join(''):''); }
+      else { h='<strong>Follow the thread.</strong>'+c.src.map(quoteHTML).join(''); }
+      slip.innerHTML=h;
+      var btns=slip.querySelectorAll('[data-a]');
+      btns.forEach(function(b){ b.addEventListener('click',function(){ act(c,b.getAttribute('data-a')); }); });
+    }
+    function act(c,a){
+      if(a==='cut'){ c.cut=true; c.btn.classList.add('cut'); c.btn.setAttribute('aria-label',c.text+'. Removed.'); say('Thread cut. Sentence removed.'); }
+      if(a==='undo'){ c.cut=false; c.btn.classList.remove('cut'); c.btn.setAttribute('aria-label',c.text+'. '+label(c)); say('Restored'); }
+      if(a==='tie'){ c.kept=true; c.btn.classList.add('kept'); c.btn.setAttribute('aria-label',c.text+'. Kept by you.'); say('Tied off. Kept as written.'); }
+      if(a==='fix'){ c.fixed=true; c.text=c.fix; c.kind='linked'; c.btn.textContent=c.text; c.btn.setAttribute('data-kind','linked'); c.btn.setAttribute('aria-label',c.text+'. '+label(c)); say('Sentence updated. Thread repaired.'); }
+      draw(); showSlip(c); hot(c); if(!c.cut) pulse(c);
+    }
+    note.addEventListener('pointerover',function(e){ if(e.pointerType!=='mouse') return; var b=e.target.closest('.b-claim'); if(b) hot(C.filter(function(c){return c.id===b.getAttribute('data-id');})[0]); });
+    note.addEventListener('pointerleave',function(){ restore(); });
+    note.addEventListener('focusin',function(e){ var b=e.target.closest('.b-claim'); if(b) hot(C.filter(function(c){return c.id===b.getAttribute('data-id');})[0]); });
+    note.addEventListener('focusout',function(){ setTimeout(function(){ if(!note.contains(document.activeElement)) restore(); },0); });
+    note.addEventListener('click',function(e){
+      var b=e.target.closest('.b-claim'); if(!b) return;
+      var c=C.filter(function(x){return x.id===b.getAttribute('data-id');})[0];
+      pinned=c; hot(c); pulse(c); showSlip(c);
+      say(c.text+'. '+(c.src.length?('Source: '+c.src.map(function(s){return s==='chart'?CHART.text:TBY[s].text;}).join(' ')):'No source. Loose end.'));
+    });
+    tx.addEventListener('pointerover',function(e){
+      if(e.pointerType!=='mouse') return; var l=e.target.closest('.b-line,.b-chart'); if(!l) return;
+      var sid=l.id==='b-chart'?'chart':l.id.slice(2);
+      var used=C.filter(function(c){return !c.cut && c.src.indexOf(sid)>-1;});
+      clear(); if(!used.length) return; board.classList.add('focus'); l.classList.add('on');
+      used.forEach(function(c){ c.btn.classList.add('on'); svg.querySelectorAll('[data-claim="'+c.id+'"][data-src="'+sid+'"]').forEach(function(p){p.classList.add('hot');}); });
+    });
+    tx.addEventListener('pointerleave',function(){ restore(); });
+    if(window.ResizeObserver){ new ResizeObserver(function(){ draw(); }).observe(board); } else { window.addEventListener('resize',draw); }
+    if(document.fonts && document.fonts.ready){ document.fonts.ready.then(draw); }
+    draw();
+  })();
+
+  /* ---------- B. Replay ---------- */
+  (function(){
+    var C=claims(), t=0, playing=false, last=0, raf=null;
+    var wave=document.getElementById('wave'), pins=document.getElementById('pins'), utts=document.getElementById('utts'), range=document.getElementById('rpRange'), ph=document.getElementById('playhead'), cap=document.getElementById('cap'), timeEl=document.getElementById('rpTime'), playBtn=document.getElementById('rpPlay'), list=document.getElementById('rpClaims'), trayList=document.getElementById('trayClaims'), tray=document.getElementById('tray'), trayMsg=document.getElementById('trayMsg');
+    var seed=7; function rnd(){ seed=(seed*16807)%2147483647; return (seed-1)/2147483646; }
+    var used={}; C.forEach(function(c){ c.src.forEach(function(s){ used[s]=true; }); });
+    var bars=136, w=1000/bars, svgNS='http://www.w3.org/2000/svg';
+    for(var i=0;i<bars;i++){
+      var ts=i*(DUR/bars), seg=null;
+      for(var j=0;j<T.length;j++){ if(ts>=T[j].s-0.5 && ts<=T[j].e+0.5){ seg=T[j]; break; } }
+      var h = seg ? 22+rnd()*52 : 3+rnd()*6;
+      var r=document.createElementNS(svgNS,'rect'); r.setAttribute('x',i*w+0.8); r.setAttribute('width',w-1.6); r.setAttribute('y',(78-h)/2); r.setAttribute('height',h); r.setAttribute('rx',1.5);
+      r.setAttribute('class', seg ? (seg.who==='Patient'?'bar-pat':'bar-doc') : 'bar-sil'); r.setAttribute('data-t',ts);
+      wave.appendChild(r);
+    }
+    T.forEach(function(s){
+      var u=el('div','utt '+(used[s.id]?'used':'unused'));
+      u.style.left=(s.s/DUR*100)+'%'; u.style.width=Math.max(0.9,(s.e-s.s)/DUR*100)+'%';
+      u.title=(used[s.id]?'In the note: ':'Said, not in the note: ')+s.text; utts.appendChild(u);
+    });
+    C.forEach(function(c){
+      c.time = c.src.length ? (c.src[0]==='chart' ? 0 : Math.min.apply(null,c.src.map(function(s){return TBY[s].s;}))) : null;
+      var b=el('button','rp-claim','<span class="tc">'+(c.time===null?'never':(c.src[0]==='chart'?'chart':fmt(c.time)))+'</span><span>'+esc(c.text)+'</span>'+(c.kind==='partial'?'<span class="fl">dose not heard</span>':''));
+      b.setAttribute('data-kind',c.kind); c.btn=b;
+      b.setAttribute('aria-label', c.text+(c.time===null?'. Never heard in the visit.':c.src[0]==='chart'?'. From the chart.':'. Said at '+fmt(c.time)+'. Jump there.'));
+      if(c.time===null){ trayList.appendChild(b); } else { list.appendChild(b); }
+      b.addEventListener('click',function(){
+        if(c.time===null){ say('Never heard in the visit. Nothing in the recording supports this.'); trayMsg.textContent='Nothing in the recording or chart supports "'+c.text+'". Remove it or confirm you discussed it.'; return; }
+        seek(Math.max(0,c.time-1)); if(!playing) play(4);
+      });
+      if(c.time!==null && c.src[0]!=='chart'){
+        var p=el('button','pin'+(c.kind==='partial'?' partial':''),'<span class="d"></span><span class="stem"></span>');
+        p.style.left=(c.time/DUR*100)+'%'; p.setAttribute('aria-label',c.text+', '+fmt(c.time)); c.pin=p;
+        p.addEventListener('click',function(){ seek(c.time); });
+        p.addEventListener('pointerenter',function(){ c.btn.classList.add('pop'); });
+        p.addEventListener('pointerleave',function(){ c.btn.classList.remove('pop'); });
+        pins.appendChild(p);
+      }
+    });
+    var stopAt=null;
+    function render(){
+      var pct=t/DUR*100; ph.style.left=pct+'%'; range.value=Math.round(t);
+      range.setAttribute('aria-valuetext',Math.floor(t/60)+' minutes '+Math.round(t%60)+' seconds');
+      timeEl.textContent=fmt(t)+' / '+fmt(DUR);
+      var cur=null; for(var k=0;k<T.length;k++){ if(t>=T[k].s && t<=T[k].e+1.5) cur=T[k]; }
+      if(cur){ cap.classList.remove('empty'); cap.innerHTML='<span class="w">'+cur.who+', '+fmt(cur.s)+(used[cur.id]?'':' · not in the note')+'</span>\u201C'+esc(cur.text)+'\u201D'; }
+      else { cap.classList.add('empty'); cap.textContent = t<5 ? "The visit hasn't started yet." : (t>=DUR-1 ? 'End of visit.' : 'Silence or examination.'); }
+      C.forEach(function(c){
+        if(c.time===null) return;
+        var landed = c.src[0]==='chart' ? true : t>=c.time;
+        c.btn.classList.toggle('landed',landed);
+        if(c.pin){ c.pin.classList.toggle('passed',landed); }
+      });
+      var ended=t>=DUR-0.5; tray.classList.toggle('end',ended);
+      if(ended && trayMsg.getAttribute('data-ended')!=='1'){ trayMsg.setAttribute('data-ended','1'); trayMsg.textContent='The whole visit has played and this was never said. Remove it, or confirm you discussed it off the recording.'; say('End of visit. One sentence was never heard.'); }
+      if(!ended && trayMsg.getAttribute('data-ended')==='1'){ trayMsg.setAttribute('data-ended','0'); trayMsg.textContent='These stay here until the end of the replay.'; }
+    }
+    function seek(v){ t=Math.max(0,Math.min(DUR,v)); render(); }
+    function frame(ts){
+      if(!playing) return; var dt=(ts-last)/1000; last=ts; t+=dt*12;
+      if(stopAt!==null && t>=stopAt){ t=stopAt; pause(); render(); return; }
+      if(t>=DUR){ t=DUR; pause(); }
+      render(); if(playing) raf=requestAnimationFrame(frame);
+    }
+    function play(secs){ if(t>=DUR) t=0; stopAt = secs ? Math.min(DUR,t+secs*12) : null; playing=true; last=performance.now(); playBtn.textContent='Pause'; playBtn.setAttribute('aria-pressed','true'); raf=requestAnimationFrame(frame); }
+    function pause(){ playing=false; stopAt=null; playBtn.textContent='Play replay'; playBtn.setAttribute('aria-pressed','false'); if(raf) cancelAnimationFrame(raf); }
+    playBtn.addEventListener('click',function(){ if(playing) pause(); else play(); });
+    document.getElementById('rpEnd').addEventListener('click',function(){ pause(); seek(DUR); });
+    range.addEventListener('input',function(){ pause(); seek(+range.value); });
+    render();
+  })();
+
+  /* ---------- C. Pencil to ink ---------- */
+  (function(){
+    var C=claims(), body=document.getElementById('pBody'), open=null, signed=false;
+    var secs=['History','Results','Plan'];
+    secs.forEach(function(s){
+      var sec=el('div','psec'); sec.appendChild(el('div','psec-t',s));
+      var rows=el('div'); rows.setAttribute('data-rows',s); sec.appendChild(rows);
+      C.filter(function(c){return c.sec===s;}).forEach(function(c){ rows.appendChild(row(c)); });
+      var add=el('div','padd');
+      add.innerHTML='<form class="addf"><label class="sr" for="add-'+s+'">Write a line in '+s+'</label><input id="add-'+s+'" placeholder="Write a line in ink"><button class="btn small" type="submit">Add</button></form><button class="btn quiet small" data-inksec="'+s+'">Ink the rest of '+s.toLowerCase()+'</button>';
+      sec.appendChild(add); body.appendChild(sec);
+    });
+    function row(c){
+      var r=el('div','prow'); c.row=r;
+      var b=el('button','pl','<span class="tx">'+esc(c.text)+'</span>'); c.btn=b;
+      b.setAttribute('aria-expanded','false'); updLabel(c);
+      var m=el('div','margin'); c.margin=m;
+      if(c.note){ var n=el('button','mnote',esc(c.note)); n.setAttribute('aria-label','Margin note: '+c.note); n.addEventListener('click',function(){ toggle(c); }); m.appendChild(n); c.mnote=n; }
+      b.addEventListener('click',function(){ toggle(c); });
+      r.appendChild(b); r.appendChild(m); return r;
+    }
+    function updLabel(c){
+      var st = c.mine ? 'Written by you, in ink.' : c.inked ? 'Checked, in ink.' : (c.kind==='unsupported'?'In pencil. No source found.':c.kind==='partial'?'In pencil. Partly supported.':'In pencil, not checked yet.');
+      c.btn.setAttribute('aria-label',c.text+'. '+st+(signed?'':' Show source.'));
+    }
+    function closeOpen(){ if(!open) return; var s=open.margin.querySelector('.pslip'); if(s) s.remove(); open.btn.classList.remove('open'); open.btn.setAttribute('aria-expanded','false'); open=null; }
+    function toggle(c){
+      if(signed) return;
+      if(open===c){ closeOpen(); return; } closeOpen(); open=c;
+      c.btn.classList.add('open'); c.btn.setAttribute('aria-expanded','true');
+      var flagged=(c.kind==='partial'||c.kind==='unsupported') && !c.inked;
+      var s=el('div','pslip'+(flagged?' flag':'')); var h='';
+      if(c.mine){ h='You wrote this.<div class="acts"><button class="btn small" data-a="close">Close</button></div>'; }
+      else if(c.kind==='unsupported' && !c.inked){ h=esc(c.reason)+'<div class="acts"><button class="btn small" data-a="remove">Remove</button><button class="btn small" data-a="ink">Keep, I discussed it</button><button class="btn quiet small" data-a="edit">Rewrite</button></div>'; }
+      else if(c.kind==='partial' && !c.inked){ h=esc(c.reason)+c.src.map(quoteHTML).join('')+'<div class="acts"><button class="btn small" data-a="fix">Use \u201C'+esc(c.fix)+'\u201D</button><button class="btn small" data-a="ink">Ink 40 mg as written</button><button class="btn quiet small" data-a="edit">Rewrite</button></div>'; }
+      else { h=c.src.map(quoteHTML).join('')+'<div class="acts">'+(c.inked?'':'<button class="btn small solid" data-a="ink">Looks right, ink it</button>')+'<button class="btn quiet small" data-a="edit">Rewrite</button></div>'; }
+      s.innerHTML=h; c.margin.appendChild(s);
+      s.querySelectorAll('[data-a]').forEach(function(b){ b.addEventListener('click',function(){ act(c,b.getAttribute('data-a'),s); }); });
+      var first=s.querySelector('button'); if(first) first.focus();
+    }
+    function ink(c){ c.inked=true; c.btn.classList.add('inked'); if(c.mnote){ c.mnote.remove(); c.mnote=null; } updLabel(c); }
+    function act(c,a,slipEl){
+      if(a==='close'){ closeOpen(); c.btn.focus(); return; }
+      if(a==='ink'){ closeOpen(); ink(c); say('Inked: '+c.text); c.btn.focus(); }
+      if(a==='remove'){ closeOpen(); c.removed=true; c.row.remove(); say('Removed: '+c.text); }
+      if(a==='fix'){ c.text=c.fix; c.btn.querySelector('.tx').textContent=c.text; closeOpen(); ink(c); say('Rewritten and inked'); c.btn.focus(); }
+      if(a==='edit'){
+        slipEl.innerHTML='<label class="sr" for="ed-'+c.id+'">Rewrite line</label><input id="ed-'+c.id+'" value="'+esc(c.text)+'"><div class="acts"><button class="btn small solid" data-a2="save">Ink my version</button><button class="btn quiet small" data-a2="cancel">Cancel</button></div>';
+        var inp=slipEl.querySelector('input'); inp.focus(); inp.select();
+        slipEl.querySelector('[data-a2="save"]').addEventListener('click',function(){ var v=inp.value.trim(); if(!v){ inp.focus(); return; } c.text=v; c.mine=true; c.btn.querySelector('.tx').textContent=v; if(!c.btn.querySelector('.nib')) c.btn.insertAdjacentHTML('beforeend','<span class="nib">yours</span>'); closeOpen(); ink(c); say('Your version, in ink'); c.btn.focus(); gauge(); });
+        slipEl.querySelector('[data-a2="cancel"]').addEventListener('click',function(){ closeOpen(); c.btn.focus(); });
+        return;
+      }
+      gauge();
+    }
+    body.addEventListener('submit',function(e){
+      e.preventDefault(); if(signed) return; var f=e.target, inp=f.querySelector('input'), v=inp.value.trim(); if(!v){ inp.focus(); return; }
+      var s=inp.id.replace('add-',''); var c={id:'m'+Date.now(),sec:s,text:v,src:[],kind:'mine',mine:true};
+      C.push(c); var r=row(c); c.btn.insertAdjacentHTML('beforeend','<span class="nib">yours</span>');
+      body.querySelector('[data-rows="'+s+'"]').appendChild(r); inp.value=''; ink(c); say('Added in ink'); gauge();
+    });
+    body.addEventListener('click',function(e){
+      var b=e.target.closest('[data-inksec]'); if(!b || signed) return; var s=b.getAttribute('data-inksec'); var n=0, skipped=0;
+      C.filter(function(c){return c.sec===s && !c.removed && !c.inked;}).forEach(function(c){ if(c.kind==='partial'||c.kind==='unsupported'){ skipped++; return; } ink(c); n++; });
+      closeOpen(); say(n+' lines inked'+(skipped?'. '+skipped+' with margin notes left in pencil.':'.')); gauge();
+    });
+    function liveClaims(){ return C.filter(function(c){return !c.removed;}); }
+    function gauge(){
+      var L=liveClaims(), inked=L.filter(function(c){return c.inked;}).length;
+      document.getElementById('gLbl').textContent='In ink: '+inked+' of '+L.length+' line'+(L.length===1?'':'s');
+      document.getElementById('gBar').style.width=(L.length?inked/L.length*100:0)+'%';
+      var pencil=L.filter(function(c){return !c.inked;}), flagged=pencil.filter(function(c){return c.kind==='partial'||c.kind==='unsupported';}).length;
+      var msg = signed ? '' : (pencil.length ? pencil.length+' line'+(pencil.length>1?'s are':' is')+' still in pencil'+(flagged?', including '+flagged+' with margin notes':'')+'. Signing will keep them as written.' : "Everything's in ink.");
+      document.getElementById('signMsg').textContent=msg;
+    }
+    var hold=document.getElementById('hold'), sig=document.getElementById('sig'), holdTxt=document.getElementById('holdTxt');
+    var len=sig.getTotalLength(); sig.style.strokeDasharray=len; sig.style.strokeDashoffset=len;
+    var p=0, dir=0, lastTs=0, rafH=null, HOLD=1300;
+    function tick(ts){
+      var dt=ts-lastTs; lastTs=ts; p+=dir*dt/(dir>0?HOLD:400); p=Math.max(0,Math.min(1,p));
+      sig.style.strokeDashoffset=len*(1-p);
+      if(p>=1 && dir>0){ done(); return; }
+      if(p<=0 && dir<0){ dir=0; holdTxt.textContent='Hold to sign'; return; }
+      rafH=requestAnimationFrame(tick);
+    }
+    function start(){ if(signed) return; dir=1; holdTxt.textContent='Keep holding'; lastTs=performance.now(); cancelAnimationFrame(rafH); rafH=requestAnimationFrame(tick); }
+    function stop(){ if(signed || dir<=0) return; dir=-1; holdTxt.textContent='Let go too soon'; lastTs=performance.now(); cancelAnimationFrame(rafH); rafH=requestAnimationFrame(tick); }
+    hold.addEventListener('pointerdown',function(e){ e.preventDefault(); hold.setPointerCapture && hold.setPointerCapture(e.pointerId); start(); });
+    hold.addEventListener('pointerup',stop); hold.addEventListener('pointercancel',stop); hold.addEventListener('lostpointercapture',stop);
+    hold.addEventListener('keydown',function(e){ if((e.key===' '||e.key==='Enter') && !e.repeat){ e.preventDefault(); start(); } else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); } });
+    hold.addEventListener('keyup',function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); stop(); } });
+    hold.addEventListener('click',function(e){ e.preventDefault(); });
+    hold.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+    document.getElementById('clickSign').addEventListener('click',function(){ if(signed) return; sig.style.strokeDashoffset=0; done(); });
+    function done(){
+      signed=true; dir=0; cancelAnimationFrame(rafH); closeOpen();
+      var asIs=0; liveClaims().forEach(function(c){ if(!c.inked){ asIs++; c.btn.insertAdjacentHTML('beforeend','<span class="asis">signed unchecked</span>'); if(c.mnote){ c.mnote.remove(); } } updLabel(c); });
+      holdTxt.textContent=''; hold.setAttribute('aria-disabled','true');
+      document.querySelectorAll('.padd').forEach(function(a){a.style.display='none';});
+      document.getElementById('clickSign').style.display='none';
+      var d=new Date(); document.getElementById('stampWrap').innerHTML='<span class="stamp">Signed '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+'</span>';
+      document.getElementById('signMsg').textContent = asIs ? asIs+' line'+(asIs>1?'s were':' was')+' signed without being checked. That is recorded with the note.' : 'Every line was checked before signing.';
+      say('Note signed');
+    }
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape' && open){ var c=open; closeOpen(); c.btn.focus(); } });
+    gauge();
+  })();
+})();
+</script>
+</body>
+</html>

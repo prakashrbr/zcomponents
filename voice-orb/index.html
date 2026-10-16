@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Voice Orb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script src="voice-orb.js"></script>
+</head>
+<body>
+<div class="doc">
+  <div class="intro">
+    <span class="crumb">Components / Voice Orb</span>
+    <h1>Voice Orb</h1>
+    <p class="lead">An animated orb for recording and transcription. Six looks and six states in one custom element, with no dependencies.</p>
+  </div>
+
+  <section aria-label="Preview">
+    <div class="card">
+      <div class="stage" id="stage" data-stage="dark">
+        <voice-orb id="hero" variant="aura" state="listening" tone="iris" size="160"></voice-orb>
+        <div class="tools">
+          <button class="tb" id="flow" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 3l8 5-8 5z"/></svg><span>Play flow</span></button>
+          <button class="tb ic" id="stg" aria-label="Switch to light stage"><svg viewBox="0 0 16 16" id="stg-i"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></svg></button>
+        </div>
+        <p class="cap" id="cap">Listening</p>
+      </div>
+      <div class="controls">
+        <div class="row"><span class="lab">Variant</span>
+          <div class="opts" id="variants" role="group" aria-label="Variant">
+            <button class="vb" data-v="aura" aria-pressed="true"><voice-orb variant="aura" size="32" state="listening"></voice-orb>Aura</button>
+            <button class="vb" data-v="halo" aria-pressed="false"><voice-orb variant="halo" size="32" state="listening"></voice-orb>Halo</button>
+            <button class="vb" data-v="sonar" aria-pressed="false"><voice-orb variant="sonar" size="32" state="listening"></voice-orb>Sonar</button>
+            <button class="vb" data-v="wave" aria-pressed="false"><voice-orb variant="wave" size="32" state="listening"></voice-orb>Wave</button>
+            <button class="vb" data-v="globe" aria-pressed="false"><voice-orb variant="globe" size="32" state="listening"></voice-orb>Particle globe</button>
+            <button class="vb" data-v="spectrum" aria-pressed="false"><voice-orb variant="spectrum" size="32" state="listening"></voice-orb>Spectrum ring</button>
+          </div></div>
+        <div class="row"><span class="lab">State</span>
+          <div class="seg" id="state" role="group" aria-label="State">
+            <button data-v="idle" aria-pressed="false">Idle</button><button data-v="listening" aria-pressed="true">Listening</button><button data-v="paused" aria-pressed="false">Paused</button><button data-v="processing" aria-pressed="false">Processing</button><button data-v="done" aria-pressed="false">Done</button><button data-v="error" aria-pressed="false">Error</button>
+          </div></div>
+        <div class="row"><span class="lab">Tone</span>
+          <div class="opts" id="tone" role="group" aria-label="Tone">
+            <button class="sw" data-v="iris" aria-label="Iris" aria-pressed="true" style="background:linear-gradient(135deg,#8fd6ff,#6a5bff 55%,#22167a)"></button>
+            <button class="sw" data-v="lagoon" aria-label="Lagoon" aria-pressed="false" style="background:linear-gradient(135deg,#a6f2d8,#10b39f 55%,#04332f)"></button>
+            <button class="sw" data-v="ember" aria-label="Ember" aria-pressed="false" style="background:linear-gradient(135deg,#ffb37b,#f23f5c 55%,#430a1f)"></button>
+            <button class="sw" data-v="mono" aria-label="Mono" aria-pressed="false" style="background:linear-gradient(135deg,#f4f4f6,#7c7c86 55%,#18181b)"></button>
+          </div></div>
+        <div class="row"><span class="lab">Size</span>
+          <div class="seg" id="size" role="group" aria-label="Size">
+            <button data-v="48" aria-pressed="false">48</button><button data-v="96" aria-pressed="false">96</button><button data-v="160" aria-pressed="true">160</button><button data-v="240" aria-pressed="false">240</button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>States</h2>
+    <div class="states" id="states">
+      <button class="sc" data-v="idle"><voice-orb size="64" state="idle"></voice-orb>Idle</button>
+      <button class="sc" data-v="listening"><voice-orb size="64" state="listening"></voice-orb>Listening</button>
+      <button class="sc" data-v="paused"><voice-orb size="64" state="paused"></voice-orb>Paused</button>
+      <button class="sc" data-v="processing"><voice-orb size="64" state="processing"></voice-orb>Processing</button>
+      <button class="sc" data-v="done"><voice-orb size="64" state="done"></voice-orb>Done</button>
+      <button class="sc" data-v="error"><voice-orb size="64" state="error"></voice-orb>Error</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Usage</h2>
+    <div class="code"><pre id="snip"></pre><button class="cp" data-copy="snip">Copy</button></div>
+    <div class="code"><pre id="js"><span class="c">// Drive it from your recorder</span>
+<span class="a">const</span> orb = document.querySelector(<span class="v">'voice-orb'</span>);
+
+orb.state = <span class="v">'listening'</span>;
+orb.level = analyserLevel;   <span class="c">// 0 to 1, every frame</span>
+
+orb.state = <span class="v">'processing'</span>;
+orb.progress = <span class="v">0.4</span>;        <span class="c">// optional; leave unset to spin</span>
+
+orb.state = <span class="v">'done'</span>;</pre><button class="cp" data-copy="js">Copy</button></div>
+    <details id="src-d"><summary>Element source</summary><pre id="src"></pre></details>
+    <div><button class="cp" id="copy-src" style="position:static;height:34px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:13.5px">Copy element source</button></div>
+  </section>
+
+  <section>
+    <h2>API</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Name</th><th>Values</th><th>Default</th></tr></thead>
+      <tbody>
+        <tr><td><code>variant</code></td><td><code>aura</code> <code>halo</code> <code>sonar</code> <code>wave</code> <code>globe</code> <code>spectrum</code></td><td><code>aura</code></td></tr>
+        <tr><td><code>state</code></td><td><code>idle</code> <code>listening</code> <code>paused</code> <code>processing</code> <code>done</code> <code>error</code></td><td><code>idle</code></td></tr>
+        <tr><td><code>tone</code></td><td><code>iris</code> <code>lagoon</code> <code>ember</code> <code>mono</code></td><td><code>iris</code></td></tr>
+        <tr><td><code>size</code></td><td>Width and height in pixels</td><td><code>96</code></td></tr>
+        <tr><td><code>label</code></td><td>Text read to screen readers</td><td>The state name</td></tr>
+        <tr><td><code>.level</code></td><td>Voice level, 0 to 1. Without it, listening uses a built-in motion.</td><td>None</td></tr>
+        <tr><td><code>.progress</code></td><td>0 to 1 while processing. Unset shows an indeterminate spinner.</td><td>None</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">State changes are announced politely to screen readers. With reduced motion turned on, the orb holds still and only fades between states. It reads its own text colour to tell light backgrounds from dark ones.</p>
+  </section>
+</div>
+<script src="demo.js"></script>
+</body>
+</html>

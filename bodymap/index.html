@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Body map: pain and symptom drawing prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#EEF1F4; --paper:#FFFFFF; --paper-2:#F5F7F9; --ink:#16212C; --ink-2:#4B5663; --ink-3:#6A7480;
+  --rule:#D6DCE2; --rule-2:#BCC5CE; --accent:#1F4E8C; --accent-tint:#E3ECF7;
+  --fig:#E2E7EC; --fig-line:#8995A1; --reg-line:#6C7885;
+  --t-aching:#B42343; --t-burning:#B85A06; --t-sharp:#6D3FC8; --t-numb:#1F5FBF; --t-tingling:#0E7A6E;
+  --new:#B4541A; --resolved:#2F7D4F; --same:#7B8794; --warn-tint:#FBEBCD; --warn:#8A5300;
+  --sans:"Atkinson Hyperlegible",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#0F1419; --paper:#171E26; --paper-2:#1D252E; --ink:#E6EBF0; --ink-2:#A9B4C0; --ink-3:#8B96A2;
+  --rule:#2B3540; --rule-2:#3D4955; --accent:#8DB6EE; --accent-tint:#1C2F47;
+  --fig:#2A333D; --fig-line:#63707D; --reg-line:#9AA6B2;
+  --t-aching:#F07A93; --t-burning:#F2A45A; --t-sharp:#B9A0F5; --t-numb:#86B2F2; --t-tingling:#5FD0C0;
+  --new:#F0935A; --resolved:#7FD19B; --same:#8D99A5; --warn-tint:#3A2C12; --warn:#F2C06B; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --canvas:#0F1419; --paper:#171E26; --paper-2:#1D252E; --ink:#E6EBF0; --ink-2:#A9B4C0; --ink-3:#8B96A2;
+  --rule:#2B3540; --rule-2:#3D4955; --accent:#8DB6EE; --accent-tint:#1C2F47;
+  --fig:#2A333D; --fig-line:#63707D; --reg-line:#9AA6B2;
+  --t-aching:#F07A93; --t-burning:#F2A45A; --t-sharp:#B9A0F5; --t-numb:#86B2F2; --t-tingling:#5FD0C0;
+  --new:#F0935A; --resolved:#7FD19B; --same:#8D99A5; --warn-tint:#3A2C12; --warn:#F2C06B; color-scheme:dark;}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px)}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.top{max-width:1240px;margin:0 auto;padding:14px 20px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--ink-2);font-size:14px}
+.top b{color:var(--ink);font-size:16px;margin-right:8px}
+.wrap{max-width:1240px;margin:0 auto;padding:12px 20px 32px}
+.app{background:var(--paper);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;padding:16px 20px 12px;border-bottom:1px solid var(--rule)}
+.head h1{margin:0;font-size:22px;line-height:1.2;font-weight:700}
+.head p{margin:2px 0 0;color:var(--ink-2);font-size:14.5px}
+.seg{display:inline-flex;border:1px solid var(--rule-2);border-radius:9px;padding:2px;background:var(--paper)}
+.seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:14.5px;color:var(--ink-2);min-height:36px}
+.seg button[aria-pressed="true"],.seg button[aria-checked="true"]{background:var(--accent-tint);color:var(--accent);font-weight:700}
+.body{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+@media (max-width:940px){.body{grid-template-columns:minmax(0,1fr)}}
+.stage{padding:14px 20px 16px;border-right:1px solid var(--rule);min-width:0}
+@media (max-width:940px){.stage{border-right:0;border-bottom:1px solid var(--rule)}}
+.tools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:12px}
+.grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lbl{font-size:13.5px;color:var(--ink-3)}
+.types{display:flex;gap:6px;flex-wrap:wrap}
+.ty{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule-2);background:var(--paper);border-radius:22px;padding:5px 12px 5px 6px;min-height:40px;font-size:14.5px}
+.ty[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);font-weight:700}
+.sw{width:26px;height:26px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.08)}
+.sw.aching{background:var(--t-aching)}
+.sw.burning{background:repeating-linear-gradient(45deg,var(--t-burning) 0 3px,transparent 3px 7px),color-mix(in srgb,var(--t-burning) 35%,transparent)}
+.sw.sharp{background:repeating-linear-gradient(45deg,var(--t-sharp) 0 2px,transparent 2px 7px),repeating-linear-gradient(-45deg,var(--t-sharp) 0 2px,transparent 2px 7px),color-mix(in srgb,var(--t-sharp) 20%,transparent)}
+.sw.numb{background:repeating-linear-gradient(0deg,var(--t-numb) 0 3px,transparent 3px 7px),color-mix(in srgb,var(--t-numb) 25%,transparent)}
+.sw.tingling{background:radial-gradient(circle,var(--t-tingling) 1.8px,transparent 2.2px) 0 0/7px 7px,color-mix(in srgb,var(--t-tingling) 25%,transparent)}
+.int{display:flex;align-items:center;gap:10px}
+.int input{width:150px;accent-color:var(--ink)}
+.int output{min-width:88px;font-weight:700;font-variant-numeric:tabular-nums}
+.btn{border:1px solid var(--rule-2);background:var(--paper);border-radius:9px;padding:7px 14px;font-size:14.5px;min-height:40px}
+.btn:hover{background:var(--paper-2)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:700}
+.btn.q{border-color:transparent;background:transparent;color:var(--accent)}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-2)}
+.chk input{width:18px;height:18px;accent-color:var(--accent)}
+.figs{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:640px;margin:0 auto}
+.fig{position:relative}
+.fig h2{font-size:14px;font-weight:700;text-align:center;margin:0 0 4px;color:var(--ink-2)}
+.cv{position:relative;width:100%;aspect-ratio:200/450}
+.cv canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.cv canvas.draw{cursor:crosshair}
+.cv canvas.pin{cursor:copy}
+.side{position:absolute;top:10%;font-size:12px;font-weight:700;color:var(--ink-3)}
+.cap2{display:block;font-weight:400;font-size:12.5px;color:var(--ink-3)}
+.side.l{left:2px}.side.r{right:2px}
+.readonly{font-size:14px;background:var(--paper-2);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:13.5px;color:var(--ink-2);margin:10px 0 0}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+details.list{margin-top:14px;border-top:1px solid var(--rule);padding-top:8px}
+details.list summary{cursor:pointer;font-weight:700;font-size:14.5px;padding:4px 0}
+.regcols{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin-top:8px}
+@media (max-width:560px){.regcols{grid-template-columns:1fr}}
+.regcols h3{font-size:13.5px;margin:6px 0 2px;color:var(--ink-3);font-weight:700}
+.regcols label{display:flex;gap:8px;align-items:center;font-size:14.5px;padding:3px 0}
+.regcols input{width:18px;height:18px;accent-color:var(--ink)}
+.read{padding:16px 20px 18px;min-width:0}
+.read h2{font-size:16px;margin:0 0 8px;font-weight:700}
+.stats{display:flex;flex-wrap:wrap;gap:4px 22px;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+.stat .v{display:block;font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .k{display:block;font-size:13px;color:var(--ink-2)}
+.stat .v.down{color:var(--resolved)}.stat .v.up{color:var(--new)}
+.rows{list-style:none;margin:0 0 14px;padding:0}
+.rows li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--rule);font-size:15px}
+.rows li:last-child{border-bottom:0}
+.rows .sw{width:20px;height:20px}
+.rows .m{font-size:13.5px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rows .tag{font-size:12px;font-weight:700;border-radius:4px;padding:1px 6px;margin-left:6px}
+.tag.new{background:color-mix(in srgb,var(--new) 18%,transparent);color:var(--new)}
+.tag.gone{background:color-mix(in srgb,var(--resolved) 18%,transparent);color:var(--resolved)}
+.empty{color:var(--ink-2);font-size:15px;margin:0 0 14px}
+.note{border-left:3px solid var(--rule-2);padding:2px 0 2px 12px;margin:0 0 10px;font-family:var(--serif);font-size:16.5px;line-height:1.6}
+.small{font-size:13px;color:var(--ink-3);margin:0 0 10px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.pins{list-style:none;padding:0;margin:0 0 14px}
+.pins li{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--rule);font-size:15px;flex-wrap:wrap}
+.pnum{width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--paper);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none}
+.pins input{flex:1;min-width:160px;border:1px solid var(--rule-2);border-radius:8px;padding:6px 8px;background:var(--paper);min-height:38px}
+.cmp{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:0 0 12px}
+.cmp select{border:1px solid var(--rule-2);border-radius:9px;padding:6px 8px;background:var(--paper);min-height:40px;font-size:14.5px}
+.tl{border-top:1px solid var(--rule);padding:12px 20px 16px}
+.tl h2{font-size:15px;margin:0 0 8px}
+.tl ol{list-style:none;display:flex;gap:10px;margin:0;padding:0;flex-wrap:wrap}
+.vis{display:flex;gap:10px;align-items:center;border:1px solid var(--rule-2);background:var(--paper);border-radius:10px;padding:6px 12px 6px 6px;text-align:left;min-height:56px}
+.vis[aria-current="true"]{border-color:var(--accent);background:var(--accent-tint)}
+.vis .thumbs{display:flex;gap:2px}
+.vis canvas{width:30px;height:67.5px;display:block}
+.vis .d{display:block;font-weight:700;font-size:14.5px}
+.vis .s{display:block;font-size:13px;color:var(--ink-2)}
+.pmsg{font-size:17px;margin:0 0 12px}
+.proto{max-width:1240px;margin:0 auto;padding:0 20px 36px;font-size:13.5px;color:var(--ink-2);display:flex;gap:10px 20px;flex-wrap:wrap;align-items:center}
+kbd{font-family:var(--sans);font-size:12.5px;border:1px solid var(--rule-2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--paper)}
+.toast{position:fixed;left:50%;bottom:0;transform:translateX(-50%);margin-bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-size:15px;max-width:min(560px,92vw);opacity:0;pointer-events:none;transition:opacity .18s ease-out}
+.toast.on{opacity:1}
+body.pat .clin-only{display:none!important}
+body:not(.pat) .pat-only{display:none!important}
+body.pat .ty{min-height:48px;font-size:16px}
+body.pat .sw{width:30px;height:30px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top"><div><b>Daniel Mensah</b>52 years, MRN 3318402</div><div>Sample patient and drawings for this prototype</div></div>
+<main class="wrap">
+  <section class="app" aria-labelledby="h1">
+    <div class="head">
+      <div>
+        <h1 id="h1"><span class="clin-only">Pain and symptom map</span><span class="pat-only">Show us where you feel it</span></h1>
+        <p id="subline"></p>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Who is using this">
+        <button role="radio" data-mode="clin" data-k="m-clin">Clinician</button>
+        <button role="radio" data-mode="pat" data-k="m-pat">Patient</button>
+      </div>
+    </div>
+    <div class="body">
+      <div class="stage">
+        <div id="ro" class="readonly" hidden></div>
+        <p class="pmsg pat-only">Choose what it feels like, then colour in the places on the body. Use both the front and the back.</p>
+        <div class="tools" id="tools" role="toolbar" aria-label="Drawing tools">
+          <div class="grp clin-only"><span class="lbl" id="tl-tool">Tool</span>
+            <span class="seg" role="group" aria-labelledby="tl-tool">
+              <button data-tool="draw" data-k="tool-draw">Draw</button>
+              <button data-tool="erase" data-k="tool-erase">Erase</button>
+              <button data-tool="pin" data-k="tool-pin">Mark a spot</button>
+            </span></div>
+          <div class="grp"><span class="lbl clin-only" id="tl-type">Feels like</span>
+            <div class="types" role="group" aria-label="What it feels like" id="types"></div></div>
+          <div class="grp int"><label class="lbl" for="intensity"><span class="clin-only">Intensity</span><span class="pat-only">How strong</span></label>
+            <input type="range" id="intensity" min="0" max="10" step="1" value="5" data-k="int"><output id="intOut" for="intensity"></output></div>
+          <div class="grp"><span class="lbl" id="tl-size">Brush</span>
+            <span class="seg" role="group" aria-labelledby="tl-size">
+              <button data-size="8" data-k="sz-s">Small</button><button data-size="15" data-k="sz-m">Medium</button><button data-size="24" data-k="sz-l">Large</button>
+            </span></div>
+          <div class="grp">
+            <button class="btn" data-act="undo" data-k="undo">Undo</button>
+            <button class="btn" data-act="redo" data-k="redo">Redo</button>
+            <button class="btn pat-only" data-act="erase-toggle" data-k="erase-p" aria-pressed="false">Rub out</button>
+            <button class="btn q" data-act="clear" data-k="clear">Clear</button>
+            <label class="chk clin-only"><input type="checkbox" id="showReg" data-k="showreg"> Show body areas</label>
+          </div>
+        </div>
+        <div class="figs">
+          <div class="fig"><h2 id="lf">Front <span class="cap2">facing you</span></h2><div class="cv"><canvas id="cv-front" aria-labelledby="lf" role="img"></canvas><span class="side l" aria-hidden="true">Right</span><span class="side r" aria-hidden="true">Left</span></div></div>
+          <div class="fig"><h2 id="lb">Back <span class="cap2">seen from behind</span></h2><div class="cv"><canvas id="cv-back" aria-labelledby="lb" role="img"></canvas><span class="side l" aria-hidden="true">Left</span><span class="side r" aria-hidden="true">Right</span></div></div>
+        </div>
+        <div class="legend" id="legend"></div>
+        <details class="list" id="listbox"><summary>Choose body areas from a list instead</summary>
+          <p class="small" style="margin-top:6px">Ticking an area fills all of it with the feeling and strength chosen above.</p>
+          <div class="regcols" id="regcols"></div>
+        </details>
+      </div>
+      <div class="read" id="read" aria-live="off"></div>
+    </div>
+    <div class="tl" id="timeline"></div>
+  </section>
+</main>
+<div class="proto"><span>Shortcuts: <kbd>B</kbd> draw, <kbd>E</kbd> erase, <kbd>M</kbd> mark a spot, <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</span><button class="btn q" id="reset">Reset prototype</button></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+
+<script>
+(function(){
+  var W=200,H=450,N=W*H,S=3;
+  function $(s,r){return (r||document).querySelector(s);}
+  function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function say(m){var l=$('#live');l.textContent='';setTimeout(function(){l.textContent=m;},30);}
+  var tT=null; function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tT);tT=setTimeout(function(){t.classList.remove('on');},3800);}
+  function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+  var TYPES=[
+    {id:'aching',bit:1,label:'Aching',text:'Aching pain',plabel:'Aching'},
+    {id:'burning',bit:2,label:'Burning',text:'Burning pain',plabel:'Burning'},
+    {id:'sharp',bit:4,label:'Sharp or stabbing',text:'Sharp or stabbing pain',plabel:'Sharp or stabbing'},
+    {id:'numb',bit:8,label:'Numb',text:'Numbness',plabel:'Numb'},
+    {id:'tingling',bit:16,label:'Pins and needles',text:'Pins and needles',plabel:'Pins and needles'}
+  ];
+  var TY={}; TYPES.forEach(function(t){TY[t.id]=t;});
+  var INT_WORDS=['None','Very mild','Mild','Mild','Moderate','Moderate','Moderate','Severe','Severe','Very severe','Worst possible'];
+
+  /* ---------- geometry ---------- */
+  function partsFor(view){
+    var P=[], id=view==='front'?1:80, F=view==='front';
+    function pside(s){ return F ? (s==='vl'?'right':'left') : (s==='vl'?'left':'right'); }
+    function mx(x,s){ return s==='vl'?x:W-x; }
+    function add(o){o.id=id++;o.view=view;P.push(o);}
+    ['vl','vr'].forEach(function(s){
+      add({kind:'caps',a:[mx(83,s),240],b:[mx(81,s),318],w:32,base:F?'front of the thigh':'back of the thigh',side:pside(s)});
+      add({kind:'caps',a:[mx(81,s),318],b:[mx(81,s),346],w:28,base:F?'knee':'back of the knee',side:pside(s)});
+      add({kind:'caps',a:[mx(81,s),346],b:[mx(81,s),410],w:22,base:F?'shin':'calf',side:pside(s)});
+      add({kind:'ell',c:[mx(81,s),F?426:424],r:F?[11,9]:[10,10],base:F?'top of the foot':'heel and sole',side:pside(s)});
+      add({kind:'caps',a:[mx(60,s),94],b:[mx(45,s),160],w:22,base:F?'front of the upper arm':'back of the upper arm',side:pside(s)});
+      add({kind:'caps',a:[mx(45,s),160],b:[mx(37,s),226],w:18,base:F?'front of the forearm':'back of the forearm',side:pside(s)});
+      add({kind:'ell',c:[mx(35,s),244],r:[8.5,14],base:F?'palm and fingers':'back of the hand',side:pside(s)});
+    });
+    var bands = F ? [[60,140,'chest',true],[140,204,'abdomen',true],[204,252,'groin and pelvis',false]]
+                  : [[60,150,'upper back',true],[150,208,'lower back',true],[208,256,'buttock',true]];
+    bands.forEach(function(b){
+      if(b[3]) ['vl','vr'].forEach(function(s){ add({kind:'band',y0:b[0],y1:b[1],sx:s,base:b[2],side:pside(s)}); });
+      else add({kind:'band',y0:b[0],y1:b[1],sx:null,base:b[2],side:null});
+    });
+    add({kind:'neck',base:F?'front of the neck':'back of the neck',side:null});
+    add({kind:'head',base:F?'face and head':'back of the head',side:null});
+    return P;
+  }
+  var PARTS={front:partsFor('front'),back:partsFor('back')};
+  var PBYID={}; ['front','back'].forEach(function(v){PARTS[v].forEach(function(p){PBYID[p.id]=p;});});
+  function pname(p){ return cap(p.base)+(p.side?', '+p.side:''); }
+  function findPart(view,base,side){ return PARTS[view].filter(function(p){return p.base===base && p.side===side;})[0]; }
+
+  function torsoPath(ctx,view,s){
+    var b=view==='back'?248:242; ctx.beginPath();
+    ctx.moveTo(64*s,84*s); ctx.bezierCurveTo(74*s,75*s,126*s,75*s,136*s,84*s);
+    ctx.lineTo(141*s,104*s); ctx.lineTo(135*s,160*s); ctx.lineTo(131*s,200*s); ctx.lineTo(139*s,b*s);
+    ctx.lineTo(61*s,b*s); ctx.lineTo(69*s,200*s); ctx.lineTo(65*s,160*s); ctx.lineTo(59*s,104*s); ctx.closePath();
+  }
+  function pathPart(ctx,p,s,grow){
+    grow=grow||0;
+    if(p.kind==='caps'){ ctx.beginPath(); ctx.moveTo(p.a[0]*s,p.a[1]*s); ctx.lineTo(p.b[0]*s,p.b[1]*s); ctx.lineWidth=(p.w+grow*2)*s; ctx.lineCap='round'; ctx.stroke(); }
+    else if(p.kind==='ell'){ ctx.beginPath(); ctx.ellipse(p.c[0]*s,p.c[1]*s,(p.r[0]+grow)*s,(p.r[1]+grow)*s,0,0,Math.PI*2); ctx.fill(); }
+    else if(p.kind==='band'){ ctx.save(); torsoPath(ctx,p.view,s); ctx.clip(); var x0=p.sx==='vr'?100:0, w=p.sx?100:W; ctx.fillRect(x0*s,p.y0*s,w*s,(p.y1-p.y0)*s); ctx.restore(); }
+    else if(p.kind==='neck'){ ctx.beginPath(); if(ctx.roundRect) ctx.roundRect((91-grow)*s,(58-grow)*s,(18+grow*2)*s,(24+grow*2)*s,4*s); else ctx.rect((91-grow)*s,(58-grow)*s,(18+grow*2)*s,(24+grow*2)*s); ctx.fill(); }
+    else if(p.kind==='head'){ ctx.beginPath(); ctx.ellipse(100*s,38*s,(21+grow)*s,(26+grow)*s,0,0,Math.PI*2); ctx.fill(); }
+  }
+  function drawSil(ctx,view,s,grow,color){
+    ctx.fillStyle=color; ctx.strokeStyle=color;
+    PARTS[view].forEach(function(p){ if(p.kind==='caps'||p.kind==='ell') pathPart(ctx,p,s,grow); });
+    torsoPath(ctx,view,s); ctx.fill(); if(grow){ ctx.lineWidth=grow*2*s; ctx.lineJoin='round'; ctx.stroke(); }
+    pathPart(ctx,{kind:'neck'},s,grow); pathPart(ctx,{kind:'head'},s,grow);
+  }
+  function mk(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+
+  /* ---------- masks ---------- */
+  var M={};
+  ['front','back'].forEach(function(view){
+    var c=mk(W,H), x=c.getContext('2d'); drawSil(x,view,1,0,'#000');
+    var a=x.getImageData(0,0,W,H).data, body=new Uint8Array(N), bc=0;
+    for(var i=0;i<N;i++){ if(a[i*4+3]>127){body[i]=1;bc++;} }
+    var c2=mk(W,H), x2=c2.getContext('2d');
+    PARTS[view].forEach(function(p){ var col='rgb('+p.id+',0,0)'; x2.fillStyle=col; x2.strokeStyle=col; pathPart(x2,p,1,0); });
+    var d=x2.getImageData(0,0,W,H).data, ids=new Uint8Array(N), rpx={};
+    for(i=0;i<N;i++){ if(body[i] && d[i*4+3]>200 && PBYID[d[i*4]] && PBYID[d[i*4]].view===view){ ids[i]=d[i*4]; rpx[ids[i]]=(rpx[ids[i]]||0)+1; } }
+    var e=mk(W,H), ex=e.getContext('2d'), ed=ex.createImageData(W,H);
+    for(var y=1;y<H-1;y++)for(var xx=1;xx<W-1;xx++){ var k=y*W+xx; if(!ids[k]) continue; var r=ids[k]; if((ids[k+1]&&ids[k+1]!==r)||(ids[k+W]&&ids[k+W]!==r)){ ed.data[k*4+3]=255; } }
+    ex.putImageData(ed,0,0);
+    var sil=mk(W*S,H*S); drawSil(sil.getContext('2d'),view,S,0,'#000');
+    M[view]={body:body,bodyCount:bc,ids:ids,rpx:rpx,edge:e,sil:sil};
+  });
+  var BODY_TOTAL=M.front.bodyCount+M.back.bodyCount;
+
+  /* ---------- colors and patterns ---------- */
+  var C={};
+  function readColors(){ var cs=getComputedStyle(document.documentElement); ['fig','fig-line','reg-line','t-aching','t-burning','t-sharp','t-numb','t-tingling','new','resolved','same','ink','paper'].forEach(function(k){C[k]=cs.getPropertyValue('--'+k).trim();}); PAT={}; }
+  var PAT={};
+  function pattern(ctx,type,s){
+    var key=type+'|'+s; if(PAT[key]) return PAT[key];
+    var z=Math.max(2,Math.round(7*s)), t=mk(z,z), x=t.getContext('2d'), col=C['t-'+type];
+    if(type==='aching'){ x.fillStyle=col; x.fillRect(0,0,z,z); }
+    else { x.globalAlpha=0.32; x.fillStyle=col; x.fillRect(0,0,z,z); x.globalAlpha=1; x.strokeStyle=col; x.fillStyle=col; x.lineWidth=Math.max(1,z*0.3);
+      if(type==='burning'){ x.beginPath(); x.moveTo(-z,z*2); x.lineTo(z*2,-z); x.moveTo(-z,z); x.lineTo(z,-z); x.moveTo(0,z*2); x.lineTo(z*2,0); x.stroke(); }
+      if(type==='sharp'){ x.lineWidth=Math.max(1,z*0.2); x.beginPath(); x.moveTo(0,0); x.lineTo(z,z); x.moveTo(z,0); x.lineTo(0,z); x.stroke(); }
+      if(type==='numb'){ x.fillRect(0,0,z,Math.max(1,z*0.38)); }
+      if(type==='tingling'){ x.beginPath(); x.arc(z/2,z/2,Math.max(0.8,z*0.24),0,Math.PI*2); x.fill(); }
+    }
+    PAT[key]=ctx.createPattern(t,'repeat'); return PAT[key];
+  }
+
+  /* ---------- data ---------- */
+  function R(view,base,side,type,intensity){ var p=findPart(view,base,side); return {view:view,region:p.id,type:type,intensity:intensity}; }
+  function L(view,pts,w,type,intensity){ return {view:view,pts:pts,w:w,type:type,intensity:intensity}; }
+  function seed(){
+    return [
+      {id:'2026-06-12',date:'12 Jun 2026',short:'12 Jun',by:'Drawn with Dr A. Osei at the first visit',strokes:[
+        R('back','lower back','left','aching',8), R('back','lower back','right','aching',7), R('back','buttock','left','aching',8),
+        L('back',[[82,254],[81,272],[80,290],[80,306],[81,318]],22,'aching',7),
+        L('back',[[81,350],[81,372],[81,392],[81,406]],15,'tingling',6),
+        R('back','heel and sole','left','tingling',6), R('front','top of the foot','left','tingling',5),
+        L('front',[[122,352],[122,372],[121,392]],10,'numb',4)
+      ],pins:[]},
+      {id:'2026-07-24',date:'24 Jul 2026',short:'24 Jul',by:'Drawn by the patient on a tablet',strokes:[
+        R('back','lower back','left','aching',6), R('back','buttock','left','aching',6),
+        L('back',[[82,252],[81,266],[81,282]],20,'aching',5),
+        R('back','heel and sole','left','tingling',4), R('front','top of the foot','left','tingling',4)
+      ],pins:[]},
+      {id:'today',date:'Today, 25 Sep 2026',short:'Today',by:'Drawn by the patient in the waiting room at 09:12',editable:true,strokes:[
+        L('back',[[84,172],[80,180],[82,190],[90,194],[94,186],[92,176],[86,172]],14,'aching',4),
+        L('back',[[84,222],[88,230],[92,236]],12,'aching',3),
+        R('front','top of the foot','left','tingling',3)
+      ],pins:[]}
+    ];
+  }
+  var V=seed();
+  var S0=function(){return {visit:V.length-1,mode:'clin',tool:'draw',type:'aching',intensity:4,size:15,showReg:false,display:'draw',cmp:0};};
+  var ST=S0();
+  var undoStack=[], redoStack=[];
+
+  function strokeMask(st){
+    var c=mk(W,H), x=c.getContext('2d'); x.fillStyle='#000'; x.strokeStyle='#000';
+    if(st.region){ pathPart(x,PBYID[st.region],1,0); }
+    else { x.lineCap='round'; x.lineJoin='round'; x.lineWidth=st.w;
+      if(st.pts.length===1){ x.beginPath(); x.arc(st.pts[0][0],st.pts[0][1],st.w/2,0,Math.PI*2); x.fill(); }
+      else { x.beginPath(); x.moveTo(st.pts[0][0],st.pts[0][1]); for(var i=1;i<st.pts.length;i++) x.lineTo(st.pts[i][0],st.pts[i][1]); x.stroke(); } }
+    var a=x.getImageData(0,0,W,H).data, body=M[st.view].body, m=new Uint8Array(N);
+    for(var i2=0;i2<N;i2++) if(a[i2*4+3]>70 && body[i2]) m[i2]=1;
+    return m;
+  }
+  function compile(v){
+    if(v._c && v._c.n===v.strokes.length && v._c.ver===v._ver) return v._c;
+    var res={n:v.strokes.length,ver:v._ver,front:new Uint8Array(N),back:new Uint8Array(N),inten:{}};
+    v.strokes.forEach(function(st){
+      if(!st.mask) st.mask=strokeMask(st);
+      var tm=res[st.view], m=st.mask, i;
+      if(st.type==='erase'){ for(i=0;i<N;i++) if(m[i]) tm[i]=0; }
+      else { var bit=TY[st.type].bit, ids=M[st.view].ids; for(i=0;i<N;i++) if(m[i]){ tm[i]|=bit; var k=ids[i]+'|'+st.type; if(ids[i] && (!res.inten[k]||res.inten[k]<st.intensity)) res.inten[k]=st.intensity; } }
+    });
+    var painted=0, regs=[], worst=0;
+    ['front','back'].forEach(function(view){
+      var tm=res[view], ids=M[view].ids, cnt={};
+      for(var i=0;i<N;i++){ if(tm[i]){ painted++; if(ids[i]){ TYPES.forEach(function(t){ if(tm[i]&t.bit){ var k=ids[i]+'|'+t.id; cnt[k]=(cnt[k]||0)+1; } }); } } }
+      Object.keys(cnt).forEach(function(k){ var id=+k.split('|')[0], t=k.split('|')[1], rp=M[view].rpx[id]||1, n=cnt[k];
+        if(n>=Math.max(5,rp*0.02)){ var inten=res.inten[k]||0; regs.push({id:id,type:t,pct:Math.round(n/rp*100),intensity:inten,view:view}); if(inten>worst) worst=inten; } });
+    });
+    regs.sort(function(a,b){ return TYPES.map(function(t){return t.id;}).indexOf(a.type)-TYPES.map(function(t){return t.id;}).indexOf(b.type) || b.intensity-a.intensity || b.pct-a.pct; });
+    res.extent=painted/BODY_TOTAL*100; res.regs=regs; res.worst=worst;
+    res.regionSet={}; regs.forEach(function(r){ res.regionSet[r.id]=true; });
+    v._c=res; return res;
+  }
+  function touch(v){ v._ver=(v._ver||0)+1; }
+
+  /* ---------- rendering ---------- */
+  var OFF={};
+  function renderView(canvas,view,visit,s,opts){
+    opts=opts||{};
+    if(canvas.width!==W*s){ canvas.width=W*s; canvas.height=H*s; }
+    var ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.save(); drawSil(ctx,view,s,1.3,C['fig-line']); drawSil(ctx,view,s,0,C['fig']); ctx.restore();
+    var disp=opts.display||'draw';
+    if(disp==='draw'){
+      var key=view+'|'+s, off=OFF[key]; if(!off){ off=OFF[key]=mk(W*s,H*s); }
+      var o=off.getContext('2d'); o.globalCompositeOperation='source-over'; o.globalAlpha=1; o.clearRect(0,0,off.width,off.height);
+      visit.strokes.forEach(function(st){
+        if(st.view!==view) return;
+        if(st.type==='erase'){ o.globalCompositeOperation='destination-out'; o.globalAlpha=1; o.fillStyle='#000'; o.strokeStyle='#000'; }
+        else { o.globalCompositeOperation='source-over'; o.globalAlpha=0.3+st.intensity/10*0.62; var pt=pattern(o,st.type,s); o.fillStyle=pt; o.strokeStyle=pt; }
+        if(st.region) pathPart(o,PBYID[st.region],s,0);
+        else { o.lineCap='round'; o.lineJoin='round'; o.lineWidth=st.w*s;
+          if(st.pts.length===1){ o.beginPath(); o.arc(st.pts[0][0]*s,st.pts[0][1]*s,st.w*s/2,0,Math.PI*2); o.fill(); }
+          else { o.beginPath(); o.moveTo(st.pts[0][0]*s,st.pts[0][1]*s); for(var i=1;i<st.pts.length;i++) o.lineTo(st.pts[i][0]*s,st.pts[i][1]*s); o.stroke(); } }
+      });
+      o.globalAlpha=1; o.globalCompositeOperation='destination-in';
+      o.drawImage(M[view].sil,0,0,off.width,off.height); o.globalCompositeOperation='source-over';
+      ctx.drawImage(off,0,0);
+      if(opts.prior){ ctx.drawImage(outlineCanvas(opts.prior,view),0,0,W*s,H*s); }
+    } else if(disp==='change'){
+      ctx.imageSmoothingEnabled=true; ctx.drawImage(changeCanvas(visit,opts.prior,view),0,0,W*s,H*s);
+    } else if(disp==='freq'){
+      ctx.imageSmoothingEnabled=true; ctx.drawImage(freqCanvas(view),0,0,W*s,H*s);
+    }
+    if(opts.regions){ ctx.globalAlpha=0.55; ctx.imageSmoothingEnabled=true; tint(ctx,M[view].edge,C['reg-line'],s); ctx.globalAlpha=1; }
+    if(opts.pins){ visit.pins.forEach(function(p,i){ if(p.view!==view) return; ctx.beginPath(); ctx.arc(p.x*s,p.y*s,7.5*s,0,Math.PI*2); ctx.fillStyle=C.ink; ctx.fill(); ctx.lineWidth=1.5*s; ctx.strokeStyle=C.paper; ctx.stroke(); ctx.fillStyle=C.paper; ctx.font='700 '+(9*s)+'px '+getComputedStyle(document.body).fontFamily; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(String(i+1),p.x*s,p.y*s+0.5*s); }); }
+  }
+  var TINT={};
+  function tint(ctx,src,color,s){ var k=color; if(!TINT[k]||TINT[k].src!==src){ var c=mk(W,H), x=c.getContext('2d'); x.drawImage(src,0,0); x.globalCompositeOperation='source-in'; x.fillStyle=color; x.fillRect(0,0,W,H); TINT[k]={src:src,c:c}; } ctx.drawImage(TINT[k].c,0,0,W*s,H*s); }
+  function hexRGB(h){ var m=h.replace('#',''); if(m.length===3) m=m.split('').map(function(c){return c+c;}).join(''); return [parseInt(m.slice(0,2),16),parseInt(m.slice(2,4),16),parseInt(m.slice(4,6),16)]; }
+  function outlineCanvas(prior,view){
+    var tm=compile(prior)[view], c=mk(W,H), x=c.getContext('2d'), d=x.createImageData(W,H), rgb=hexRGB(C.ink);
+    for(var y=1;y<H-1;y++)for(var xx=1;xx<W-1;xx++){ var k=y*W+xx; if(tm[k] && (!tm[k-1]||!tm[k+1]||!tm[k-W]||!tm[k+W]) && ((xx+y)%4<2)){ d.data[k*4]=rgb[0];d.data[k*4+1]=rgb[1];d.data[k*4+2]=rgb[2];d.data[k*4+3]=230; } }
+    x.putImageData(d,0,0); return c;
+  }
+  function changeCanvas(cur,prior,view){
+    var a=compile(cur)[view], b=compile(prior)[view], c=mk(W,H), x=c.getContext('2d'), d=x.createImageData(W,H);
+    var cn=hexRGB(C['new']), cr=hexRGB(C.resolved), cs=hexRGB(C.same);
+    for(var y=0;y<H;y++)for(var xx=0;xx<W;xx++){ var k=y*W+xx, A=a[k]?1:0, B=b[k]?1:0, col=null, al=0;
+      if(A&&B){col=cs;al=150;} else if(A&&!B){col=cn;al=220;} else if(!A&&B){ if((xx+y)%5<2){col=cr;al=235;} else {col=cr;al=55;} }
+      if(col){ d.data[k*4]=col[0];d.data[k*4+1]=col[1];d.data[k*4+2]=col[2];d.data[k*4+3]=al; } }
+    x.putImageData(d,0,0); return c;
+  }
+  function freqCanvas(view){
+    var c=mk(W,H), x=c.getContext('2d'), d=x.createImageData(W,H), col=hexRGB(C['t-aching']), ms=V.map(function(v){return compile(v)[view];}), al=[0,70,140,225];
+    for(var k=0;k<N;k++){ var n=0; for(var j=0;j<ms.length;j++) if(ms[j][k]) n++; if(n){ d.data[k*4]=col[0];d.data[k*4+1]=col[1];d.data[k*4+2]=col[2];d.data[k*4+3]=al[Math.min(3,n)]; } }
+    x.putImageData(d,0,0); return c;
+  }
+
+  var cvF=$('#cv-front'), cvB=$('#cv-back');
+  function cur(){ return V[ST.visit]; }
+  function priorVisit(){ return (ST.mode==='clin' && ST.cmp!==null && ST.cmp!==ST.visit) ? V[ST.cmp] : null; }
+  function drawFigures(){
+    var v=cur(), pr=priorVisit(), disp=ST.mode==='pat'?'draw':ST.display;
+    if(disp==='change' && !pr) disp='draw';
+    var opts={display:disp,prior:disp==='draw'?pr:pr,regions:ST.showReg||false,pins:ST.mode==='clin'};
+    if(disp!=='draw') opts.prior=pr;
+    renderView(cvF,'front',v,S,opts); renderView(cvB,'back',v,S,opts);
+    var c=compile(v);
+    ['front','back'].forEach(function(view){
+      var list=c.regs.filter(function(r){return r.view===view;}).map(function(r){return TY[r.type].label.toLowerCase()+' '+r.intensity+' out of 10 in '+PBYID[r.id].base+(PBYID[r.id].side?' '+PBYID[r.id].side:'');});
+      (view==='front'?cvF:cvB).setAttribute('aria-label',(view==='front'?'Front of body. ':'Back of body. ')+(list.length?'Marked: '+list.join('; ')+'.':'Nothing marked.'));
+    });
+  }
+
+  /* ---------- UI render ---------- */
+  function renderTools(){
+    $('#types').innerHTML=TYPES.map(function(t){ return '<button class="ty" data-type="'+t.id+'" data-k="ty-'+t.id+'" aria-pressed="'+(ST.type===t.id && ST.tool!=='erase')+'"><span class="sw '+t.id+'" aria-hidden="true"></span>'+(ST.mode==='pat'?t.plabel:t.label)+'</button>'; }).join('');
+    $$('[data-tool]').forEach(function(b){ b.setAttribute('aria-pressed',ST.tool===b.dataset.tool?'true':'false'); });
+    $$('[data-size]').forEach(function(b){ b.setAttribute('aria-pressed',ST.size===+b.dataset.size?'true':'false'); });
+    $('[data-act="erase-toggle"]').setAttribute('aria-pressed',ST.tool==='erase'?'true':'false');
+    $('#intensity').value=ST.intensity; $('#intOut').textContent=ST.intensity+' '+INT_WORDS[ST.intensity].toLowerCase();
+    $('#showReg').checked=ST.showReg;
+    var ed=!!cur().editable;
+    $('#tools').hidden=!ed; $('#listbox').hidden=!ed;
+    var ro=$('#ro'); ro.hidden=ed;
+    if(!ed) ro.innerHTML='<span>You\u2019re viewing <b>'+esc(cur().date)+'</b>. Past drawings can\u2019t be changed.</span><button class="btn" data-act="today" data-k="today">Go to today</button>';
+    [cvF,cvB].forEach(function(c){ c.className = !ed?'':(ST.tool==='pin'?'pin':'draw'); });
+    $$('[data-mode]').forEach(function(b){ b.setAttribute('aria-checked',ST.mode===b.dataset.mode?'true':'false'); b.tabIndex=ST.mode===b.dataset.mode?0:-1; });
+    document.body.classList.toggle('pat',ST.mode==='pat');
+    $('#subline').textContent = ST.mode==='pat' ? 'Your care team will look at this with you.' : cur().date+'. '+cur().by+'.';
+    renderLegend(); renderRegList();
+  }
+  function renderLegend(){
+    var pr=priorVisit(), disp=ST.mode==='pat'?'draw':ST.display, h='';
+    if(disp==='change' && pr) h='<span><i style="background:var(--new)"></i>New since '+esc(pr.short)+'</span><span><i style="background:repeating-linear-gradient(45deg,var(--resolved) 0 2px,transparent 2px 5px)"></i>Gone since '+esc(pr.short)+'</span><span><i style="background:var(--same);opacity:.6"></i>Still there</span>';
+    else if(disp==='freq') h='<span><i style="background:var(--t-aching);opacity:.3"></i>1 visit</span><span><i style="background:var(--t-aching);opacity:.55"></i>2 visits</span><span><i style="background:var(--t-aching);opacity:.9"></i>All 3 visits</span>';
+    else if(pr && ST.mode==='clin') h='<span><i style="border:2px dotted var(--ink);background:transparent"></i>Dotted outline: area on '+esc(pr.short)+'</span>';
+    $('#legend').innerHTML=h;
+  }
+  function renderRegList(){
+    var c=compile(cur()), h='';
+    [['front','Front'],['back','Back']].forEach(function(vv){
+      h+='<div><h3>'+vv[1]+'</h3>';
+      PARTS[vv[0]].slice().sort(function(a,b){return pname(a).localeCompare(pname(b));}).forEach(function(p){
+        var has=cur().strokes.some(function(s){return s.region===p.id && s.type===ST.type;});
+        h+='<label><input type="checkbox" data-region="'+p.id+'" data-k="rg-'+p.id+'"'+(has?' checked':'')+'>'+esc(pname(p))+'</label>';
+      });
+      h+='</div>';
+    });
+    $('#regcols').innerHTML=h;
+  }
+  function groupText(regs){
+    var byType={};
+    regs.forEach(function(r){ (byType[r.type]=byType[r.type]||[]).push(r); });
+    var parts=[];
+    TYPES.forEach(function(t){
+      var rs=byType[t.id]; if(!rs) return;
+      var bases={}, order=[], worst=0;
+      rs.forEach(function(r){ var p=PBYID[r.id]; if(!bases[p.base]){bases[p.base]={};order.push(p.base);} bases[p.base][p.side||'-']=true; if(r.intensity>worst) worst=r.intensity; });
+      var names=order.map(function(b){ var s=bases[b]; return b+(s.left&&s.right?' (both sides)':s.left?' (left)':s.right?' (right)':''); });
+      var list=names.length>1?names.slice(0,-1).join(', ')+' and '+names[names.length-1]:names[0];
+      parts.push({type:t, worst:worst, list:list});
+    });
+    return parts;
+  }
+  function renderRead(){
+    var v=cur(), c=compile(v), pr=priorVisit(), h='';
+    if(ST.mode==='pat'){
+      h+='<h2>What you\u2019ve shown us</h2>';
+      var g=groupText(c.regs);
+      if(!g.length) h+='<p class="empty">Nothing yet. Pick what it feels like, then colour in the body.</p>';
+      else { h+='<ul class="rows">'+g.map(function(x){ return '<li><span class="sw '+x.type.id+'" aria-hidden="true"></span><span><b>'+esc(x.type.plabel)+'</b>, '+x.worst+' out of 10<br><span style="color:var(--ink-2)">'+esc(cap(x.list))+'</span></span><span></span></li>'; }).join('')+'</ul>'; }
+      h+='<div class="acts"><button class="btn pri" data-act="done" data-k="done">I\u2019m done</button></div>';
+      $('#read').innerHTML=h; return;
+    }
+    var pc=pr?compile(pr):null;
+    h+='<div class="cmp"><label for="cmpSel" class="lbl">Compare with</label><select id="cmpSel" data-k="cmp"><option value="">Nothing</option>'+V.map(function(x,i){return i===ST.visit?'':'<option value="'+i+'"'+(ST.cmp===i?' selected':'')+'>'+esc(x.date)+'</option>';}).join('')+'</select>';
+    h+='<span class="seg" role="group" aria-label="Display"><button data-disp="draw" data-k="d-draw" aria-pressed="'+(ST.display==='draw')+'">Drawing</button><button data-disp="change" data-k="d-change" aria-pressed="'+(ST.display==='change')+'">Change</button><button data-disp="freq" data-k="d-freq" aria-pressed="'+(ST.display==='freq')+'">How often</button></span></div>';
+    if(ST.display==='change' && !pr) h+='<p class="small">Choose a visit to compare with to see what changed.</p>';
+    if(ST.display==='freq') h+='<p class="small">Shading shows how many of the 3 visits marked each area. Darker means it keeps coming back.</p>';
+    h+='<div class="stats">';
+    h+='<span class="stat"><span class="v">'+c.extent.toFixed(1)+'%</span><span class="k">of the body marked</span></span>';
+    h+='<span class="stat"><span class="v">'+(c.regs.length?c.worst+'/10':'None')+'</span><span class="k">worst intensity</span></span>';
+    if(pc){ var ch=pc.extent>0?Math.round((c.extent-pc.extent)/pc.extent*100):0; h+='<span class="stat"><span class="v '+(ch<0?'down':ch>0?'up':'')+'">'+(ch>0?'+':ch<0?'\u2212':'')+Math.abs(ch)+'%</span><span class="k">area change since '+esc(pr.short)+'</span></span>'; }
+    h+='</div>';
+    h+='<h2>By body area</h2>';
+    if(!c.regs.length) h+='<p class="empty">Nothing marked for this visit.</p>';
+    else {
+      h+='<ul class="rows">'+c.regs.map(function(r){ var p=PBYID[r.id], isNew=pc && !pc.regionSet[r.id]; return '<li><span class="sw '+r.type+'" title="'+esc(TY[r.type].label)+'" aria-hidden="true"></span><span>'+esc(pname(p))+' <span class="sr">, '+esc(TY[r.type].label)+'</span>'+(isNew?'<span class="tag new">New</span>':'')+'</span><span class="m">'+esc(TY[r.type].label)+', '+r.intensity+'/10, '+r.pct+'% of area</span></li>'; }).join('');
+      if(pc){ var gone=Object.keys(pc.regionSet).filter(function(id){return !c.regionSet[id];}); gone.forEach(function(id){ h+='<li><span class="sw" style="background:transparent;border:2px dashed var(--resolved)" aria-hidden="true"></span><span>'+esc(pname(PBYID[id]))+'<span class="tag gone">Gone</span></span><span class="m">Marked on '+esc(pr.short)+'</span></li>'; }); }
+      h+='</ul>';
+    }
+    var g=groupText(c.regs), sent=g.map(function(x){ return x.type.text+', worst '+x.worst+'/10, in the '+x.list+'.'; });
+    if(sent.length){ sent.push('Marked area '+c.extent.toFixed(1)+'% of the body'+(pc?', '+(c.extent<pc.extent?'down':'up')+' from '+pc.extent.toFixed(1)+'% on '+pr.date:'')+'.'); }
+    v.pins.forEach(function(p,i){ if(p.label) sent.push('Spot '+(i+1)+': '+p.label+' ('+p.regionName.toLowerCase()+').'); });
+    h+='<h2>For the note</h2>';
+    if(sent.length){ h+='<p class="note" id="noteText">'+esc(sent.join(' '))+'</p><p class="small">Written from the drawing. Check it before adding it to the note.</p><div class="acts"><button class="btn pri" data-act="copynote" data-k="copynote">Copy to note</button></div>'; }
+    else h+='<p class="empty">Once something is marked, a summary sentence appears here.</p>';
+    h+='<h2 style="margin-top:16px">Marked spots</h2>';
+    if(!v.pins.length) h+='<p class="empty">'+(v.editable?'Use \u201cMark a spot\u201d to pin a wound, lump, or injection site, then name it.':'No spots marked on this visit.')+'</p>';
+    else { h+='<ul class="pins">'+v.pins.map(function(p,i){ return '<li><span class="pnum" aria-hidden="true">'+(i+1)+'</span><span style="min-width:130px">'+esc(p.regionName)+'</span>'+(v.editable?'<label class="sr" for="pin-'+i+'">Name for spot '+(i+1)+'</label><input id="pin-'+i+'" data-pin="'+i+'" data-k="pin-'+i+'" value="'+esc(p.label||'')+'" placeholder="Pressure injury, stage 2"><button class="btn q" data-act="delpin" data-i="'+i+'" data-k="delpin-'+i+'">Remove</button>':'<span>'+esc(p.label||'Unnamed')+'</span>')+'</li>'; }).join('')+'</ul>'; }
+    $('#read').innerHTML=h;
+  }
+  function renderTimeline(){
+    var h='<h2>'+(ST.mode==='pat'?'Your drawings':'Drawings over time')+'</h2><ol>';
+    V.forEach(function(v,i){ var c=compile(v); h+='<li><button class="vis" data-visit="'+i+'" data-k="vis-'+i+'" aria-current="'+(ST.visit===i)+'"><span class="thumbs" aria-hidden="true"><canvas data-th="'+i+'-front"></canvas><canvas data-th="'+i+'-back"></canvas></span><span><span class="d">'+esc(v.short)+'</span><span class="s">'+(c.regs.length?'Worst '+c.worst+'/10, '+c.extent.toFixed(1)+'%':'Nothing marked')+'</span></span></button></li>'; });
+    $('#timeline').innerHTML=h+'</ol>';
+    $$('[data-th]').forEach(function(cv){ var p=cv.dataset.th.split('-'); renderView(cv,p[1],V[+p[0]],0.6,{}); });
+  }
+  function renderAll(opts){
+    var ak=document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.k:null;
+    renderTools(); drawFigures(); renderRead(); renderTimeline();
+    if(ak && !(opts&&opts.noFocus)){ var el=document.querySelector('[data-k="'+ak+'"]'); if(el) el.focus({preventScroll:true}); }
+  }
+
+  /* ---------- drawing ---------- */
+  var drawing=null;
+  function toLogical(canvas,e){ var r=canvas.getBoundingClientRect(); return [ (e.clientX-r.left)/r.width*W, (e.clientY-r.top)/r.height*H ]; }
+  function regionAt(view,x,y){ var i=Math.round(y)*W+Math.round(x); return (x>=0&&y>=0&&x<W&&y<H)?M[view].ids[i]:0; }
+  function commit(action){ undoStack.push(action); redoStack=[]; touch(cur()); renderAll({noFocus:true}); }
+  [cvF,cvB].forEach(function(canvas){
+    var view=canvas===cvF?'front':'back';
+    canvas.addEventListener('pointerdown',function(e){
+      if(!cur().editable) return;
+      var p=toLogical(canvas,e);
+      if(ST.tool==='pin'){
+        var id=regionAt(view,p[0],p[1]); if(!id){ toast('Place spots on the body.'); return; }
+        cur().pins.push({view:view,x:p[0],y:p[1],label:'',regionName:pname(PBYID[id])});
+        commit({kind:'pin'}); var inp=$('#pin-'+(cur().pins.length-1)); if(inp) inp.focus(); say('Spot added on '+pname(PBYID[id])+'. Name it in the panel.'); return;
+      }
+      e.preventDefault(); canvas.setPointerCapture(e.pointerId);
+      drawing={canvas:canvas,st:{view:view,pts:[p],w:ST.size,type:ST.tool==='erase'?'erase':ST.type,intensity:ST.intensity}};
+      cur().strokes.push(drawing.st); touch(cur()); drawFigures();
+    });
+    canvas.addEventListener('pointermove',function(e){
+      if(!drawing||drawing.canvas!==canvas) return;
+      var p=toLogical(canvas,e), last=drawing.st.pts[drawing.st.pts.length-1];
+      if(Math.hypot(p[0]-last[0],p[1]-last[1])<1.2) return;
+      drawing.st.pts.push(p); renderView(canvas,view,cur(),S,{display:'draw',prior:priorVisit(),regions:ST.showReg,pins:ST.mode==='clin'});
+    });
+    function end(){ if(!drawing||drawing.canvas!==canvas) return; var st=drawing.st; drawing=null; st.mask=strokeMask(st); commit({kind:'stroke'}); var c=compile(cur()); say(st.type==='erase'?'Rubbed out':'Marked. '+c.regs.length+' body area'+(c.regs.length===1?'':'s')+' marked in total.'); }
+    canvas.addEventListener('pointerup',end); canvas.addEventListener('pointercancel',end);
+  });
+
+  function undo(){
+    var v=cur(); if(!v.editable) return; var a=undoStack.pop(); if(!a){ toast('Nothing to undo.'); return; }
+    if(a.kind==='stroke'||a.kind==='region'){ a.item=v.strokes.pop(); }
+    else if(a.kind==='pin'){ a.item=v.pins.pop(); }
+    else if(a.kind==='clear'){ a.redoStrokes=v.strokes; a.redoPins=v.pins; v.strokes=a.strokes; v.pins=a.pins; }
+    else if(a.kind==='unregion'){ v.strokes.splice(a.index,0,a.item); }
+    else if(a.kind==='delpin'){ v.pins.splice(a.index,0,a.item); }
+    redoStack.push(a); touch(v); renderAll({noFocus:true}); say('Undone');
+  }
+  function redo(){
+    var v=cur(); if(!v.editable) return; var a=redoStack.pop(); if(!a){ toast('Nothing to redo.'); return; }
+    if(a.kind==='stroke'||a.kind==='region'){ v.strokes.push(a.item); }
+    else if(a.kind==='pin'){ v.pins.push(a.item); }
+    else if(a.kind==='clear'){ v.strokes=a.redoStrokes||[]; v.pins=a.redoPins||[]; }
+    else if(a.kind==='unregion'){ v.strokes.splice(a.index,1); }
+    else if(a.kind==='delpin'){ v.pins.splice(a.index,1); }
+    undoStack.push(a); touch(v); renderAll({noFocus:true}); say('Redone');
+  }
+
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    if(b.dataset.mode){ if(ST.mode!==b.dataset.mode){ ST.mode=b.dataset.mode; ST.visit=V.length-1; if(ST.mode==='pat'){ ST.size=24; if(ST.tool==='pin') ST.tool='draw'; } else ST.size=15; renderAll(); say(ST.mode==='pat'?'Patient view':'Clinician view'); } return; }
+    if(b.dataset.tool){ ST.tool=b.dataset.tool; renderAll(); return; }
+    if(b.dataset.type){ ST.type=b.dataset.type; if(ST.tool==='erase') ST.tool='draw'; renderAll(); say(TY[ST.type].label+' selected'); return; }
+    if(b.dataset.size){ ST.size=+b.dataset.size; renderAll(); return; }
+    if(b.dataset.disp){ ST.display=b.dataset.disp; if(ST.display==='change' && ST.cmp===null){ ST.cmp=0; } renderAll(); say(b.textContent+' view'); return; }
+    if(b.dataset.visit!=null){ var n=+b.dataset.visit; if(n!==ST.visit){ ST.visit=n; if(ST.cmp===n) ST.cmp=null; undoStack=[]; redoStack=[]; renderAll(); say('Showing '+V[n].date); } return; }
+    var a=b.dataset.act;
+    if(a==='undo') undo();
+    else if(a==='redo') redo();
+    else if(a==='clear'){ var v=cur(); if(!v.strokes.length&&!v.pins.length) return; undoStack.push({kind:'clear',strokes:v.strokes,pins:v.pins}); redoStack=[]; v.strokes=[]; v.pins=[]; touch(v); renderAll({noFocus:true}); toast('Drawing cleared. Undo brings it back.'); }
+    else if(a==='erase-toggle'){ ST.tool=ST.tool==='erase'?'draw':'erase'; renderAll(); }
+    else if(a==='today'){ ST.visit=V.length-1; renderAll(); }
+    else if(a==='delpin'){ var i=+b.dataset.i, it=cur().pins.splice(i,1)[0]; undoStack.push({kind:'delpin',index:i,item:it}); redoStack=[]; touch(cur()); renderAll({noFocus:true}); }
+    else if(a==='done'){ toast('Thanks. Your care team will look at this with you.'); }
+    else if(a==='copynote'){ var t=$('#noteText').textContent; try{ navigator.clipboard.writeText(t).then(function(){toast('Summary copied. Paste it into the visit note.');},function(){toast('Select the summary text to copy it.');}); }catch(err){ toast('Select the summary text to copy it.'); } }
+  });
+  document.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.id==='cmpSel'){ ST.cmp=t.value===''?null:+t.value; if(ST.cmp===null && ST.display==='change') ST.display='draw'; renderAll(); return; }
+    if(t.id==='showReg'){ ST.showReg=t.checked; drawFigures(); return; }
+    if(t.dataset.region){ var id=+t.dataset.region, v=cur(), p=PBYID[id];
+      if(t.checked){ v.strokes.push({view:p.view,region:id,type:ST.type,intensity:ST.intensity}); undoStack.push({kind:'region'}); redoStack=[]; say(pname(p)+' filled'); }
+      else { for(var i=v.strokes.length-1;i>=0;i--){ if(v.strokes[i].region===id && v.strokes[i].type===ST.type){ var it=v.strokes.splice(i,1)[0]; undoStack.push({kind:'unregion',index:i,item:it}); redoStack=[]; break; } } say(pname(p)+' cleared'); }
+      touch(v); renderAll(); return; }
+  });
+  document.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.id==='intensity'){ ST.intensity=+t.value; $('#intOut').textContent=ST.intensity+' '+INT_WORDS[ST.intensity].toLowerCase(); return; }
+    if(t.dataset.pin!=null){ var p=cur().pins[+t.dataset.pin]; p.label=t.value; var nt=$('#noteText'); if(nt){ clearTimeout(t._tm); t._tm=setTimeout(function(){ renderRead(); var el=$('#pin-'+t.dataset.pin); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} },600); } }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.target.closest && e.target.closest('[role="radiogroup"]') && (e.key==='ArrowLeft'||e.key==='ArrowRight')){ e.preventDefault(); var nm=ST.mode==='clin'?'pat':'clin'; var bb=$('[data-mode="'+nm+'"]'); bb.click(); bb.focus(); return; }
+    var tag=(e.target.tagName||'').toLowerCase(); if(tag==='input'||tag==='select'||tag==='textarea') return;
+    if((e.ctrlKey||e.metaKey) && (e.key==='z'||e.key==='Z')){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); return; }
+    if((e.ctrlKey||e.metaKey) && (e.key==='y'||e.key==='Y')){ e.preventDefault(); redo(); return; }
+    if(e.ctrlKey||e.metaKey||e.altKey||!cur().editable) return;
+    if(e.key==='b'||e.key==='B'){ ST.tool='draw'; renderAll(); say('Draw'); }
+    else if(e.key==='e'||e.key==='E'){ ST.tool='erase'; renderAll(); say('Erase'); }
+    else if((e.key==='m'||e.key==='M') && ST.mode==='clin'){ ST.tool='pin'; renderAll(); say('Mark a spot'); }
+  });
+  $('#reset').addEventListener('click',function(){ V=seed(); ST=S0(); undoStack=[]; redoStack=[]; renderAll({noFocus:true}); window.scrollTo(0,0); toast('Prototype reset.'); });
+  var mq=window.matchMedia('(prefers-color-scheme: dark)'); if(mq.addEventListener) mq.addEventListener('change',function(){ readColors(); TINT={}; renderAll({noFocus:true}); });
+
+  readColors();
+  ST.cmp=null;
+  renderAll({noFocus:true});
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ drawFigures(); });
+})();
+</script>
+</body>
+</html>

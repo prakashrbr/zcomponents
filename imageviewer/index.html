@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Imaging: key-image viewer prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#EDF0F3; --paper:#FFFFFF; --paper-2:#F6F8FA; --ink:#15202B; --ink-2:#4A5563; --ink-3:#687280;
+  --rule:#D7DDE3; --rule-2:#BDC6CF; --accent:#1F4E8C; --accent-tint:#E3ECF7;
+  --markA:#0B6470; --markA-tint:#DDF3F6; --markB:#5B4B8A; --markB-tint:#ECE8F7;
+  --grow:#9A4A12; --grow-tint:#FBEADB; --ai:#8A2F92; --ai-tint:#F7E6F8; --warn:#8A5300; --warn-tint:#FBEBCD;
+  --well:#06080A; --well-ink:#C9D1D9;
+  --sans:"Public Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#0F1419; --paper:#171E26; --paper-2:#1D252E; --ink:#E5EAF0; --ink-2:#A8B3BF; --ink-3:#8A95A1;
+  --rule:#2B3540; --rule-2:#3D4955; --accent:#8DB6EE; --accent-tint:#1C2F47;
+  --markA:#7FD6E0; --markA-tint:#123A40; --markB:#BBAEF0; --markB-tint:#2A2447;
+  --grow:#F2B07A; --grow-tint:#3A2616; --ai:#E6A2EC; --ai-tint:#3A1F3D; --warn:#F2C06B; --warn-tint:#3A2C12; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --canvas:#0F1419; --paper:#171E26; --paper-2:#1D252E; --ink:#E5EAF0; --ink-2:#A8B3BF; --ink-3:#8A95A1;
+  --rule:#2B3540; --rule-2:#3D4955; --accent:#8DB6EE; --accent-tint:#1C2F47;
+  --markA:#7FD6E0; --markA-tint:#123A40; --markB:#BBAEF0; --markB-tint:#2A2447;
+  --grow:#F2B07A; --grow-tint:#3A2616; --ai:#E6A2EC; --ai-tint:#3A1F3D; --warn:#F2C06B; --warn-tint:#3A2C12; color-scheme:dark;}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px)}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.chart{max-width:1240px;margin:0 auto;padding:14px 20px 0;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;color:var(--ink-2);font-size:13.5px}
+.chart b{color:var(--ink);font-weight:600;font-size:15px;margin-right:8px}
+.wrap{max-width:1240px;margin:0 auto;padding:12px 20px 40px}
+.im{background:var(--paper);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.im-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:16px 20px 10px;flex-wrap:wrap}
+.im-head h1{font-size:21px;line-height:1.25;font-weight:600;margin:0;letter-spacing:-0.005em}
+.im-head .sub{margin:2px 0 0;color:var(--ink-2);font-size:14px}
+.seg{display:inline-flex;border:1px solid var(--rule-2);border-radius:8px;padding:2px;background:var(--paper)}
+.seg button{border:0;background:transparent;border-radius:6px;padding:6px 12px;font-size:13.5px;color:var(--ink-2);min-height:34px}
+.seg button[aria-pressed="true"],.seg button[aria-checked="true"]{background:var(--accent-tint);color:var(--accent);font-weight:600}
+.refnote{margin:0 20px 12px;font-size:13px;color:var(--ink-2);display:flex;gap:8px;align-items:center}
+.refnote::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rule-2);flex:none}
+.im-body{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);border-top:1px solid var(--rule)}
+@media (max-width:920px){.im-body{grid-template-columns:minmax(0,1fr)}}
+.viewer{padding:14px 20px 16px;border-right:1px solid var(--rule);min-width:0}
+@media (max-width:920px){.viewer{border-right:0;border-bottom:1px solid var(--rule)}}
+.tools{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:10px}
+.tool-lbl{font-size:12.5px;color:var(--ink-3);margin-right:6px}
+.tog{border:1px solid var(--rule-2);background:var(--paper);border-radius:8px;padding:6px 12px;font-size:13.5px;min-height:38px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}
+.tog[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-tint);font-weight:600}
+.tog .dot{width:10px;height:10px;border-radius:50%;border:2px solid currentColor}
+.tog.ai .dot{border-style:dashed;border-radius:2px}
+.tog.chg .dot{border-style:dotted}
+.ask{border:1px solid var(--rule-2);background:var(--paper-2);border-radius:10px;padding:10px 12px;margin:0 0 10px;font-size:14px}
+.ask p{margin:0 0 8px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--rule-2);background:var(--paper);border-radius:8px;padding:7px 14px;font-size:14px;min-height:38px}
+.btn:hover{background:var(--paper-2)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600}
+.btn.pri:hover{opacity:.92;background:var(--accent)}
+.btn.q{border-color:transparent;background:transparent;color:var(--accent)}
+.stages{display:grid;gap:10px}
+.stages.two{grid-template-columns:1fr 1fr}
+.stage{position:relative;aspect-ratio:1/1;background:var(--well);border-radius:10px;overflow:hidden;width:100%;max-width:620px;touch-action:none}
+.stages.two .stage{max-width:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg.ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.corner{position:absolute;top:8px;font-size:12px;color:var(--well-ink);background:rgba(6,8,10,.72);padding:3px 8px;border-radius:5px;pointer-events:none}
+.corner.l{left:8px}.corner.r{right:8px}
+.orient{position:absolute;bottom:8px;font-size:11px;color:#8C96A0;pointer-events:none}
+.orient.l{left:10px}.orient.r{right:10px}
+.mk{position:absolute;transform:translate(0,-50%);border:0;border-radius:5px;padding:3px 8px;font-size:12.5px;font-weight:600;white-space:nowrap;line-height:1.3;min-height:26px}
+.mk.A{background:#35C8D8;color:#04262B}
+.mk.B{background:#B7A8F2;color:#1D1540}
+.mk.ai{background:transparent;color:#F2B4F6;border:1.5px dashed #E58BEF}
+.mk.ghost{background:rgba(6,8,10,.8);color:#F5B27A;border:1px dotted #F5B27A;font-weight:500;pointer-events:none}
+.mk.hot{outline:2px solid #FFFFFF;outline-offset:1px}
+.ring{fill:none;stroke-width:1.6;vector-effect:non-scaling-stroke}
+.ring.A{stroke:#35C8D8}.ring.B{stroke:#B7A8F2}
+.ring.ghost{stroke:#F5B27A;stroke-dasharray:2 3}
+.ring.ai{stroke:#E58BEF;stroke-dasharray:5 4}
+.ring.hot{stroke-width:3}
+.pulse{fill:none;stroke:#FFFFFF;stroke-width:1.5;vector-effect:non-scaling-stroke;animation:pulse 900ms ease-out 1 forwards}
+@keyframes pulse{from{opacity:.9}to{opacity:0}}
+.handle{position:absolute;top:0;bottom:0;width:0;border-left:2px solid #FFFFFF;pointer-events:none}
+.grip{position:absolute;top:86%;left:-15px;width:30px;height:30px;margin-top:-15px;border-radius:50%;background:#FFFFFF;color:#06080A;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;pointer-events:auto;cursor:ew-resize;border:0}
+.loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#9AA4AE;font-size:14px}
+.bar{width:40%;height:4px;background:#1E252C;border-radius:2px;overflow:hidden}
+.bar span{display:block;height:100%;width:35%;background:#5E6B77;animation:slide 1.1s ease-in-out infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+.swipectl{display:flex;align-items:center;gap:10px;margin:8px 0 0;font-size:13px;color:var(--ink-2);max-width:620px}
+.swipectl input{flex:1;accent-color:var(--accent)}
+.cap{margin:8px 0 10px;font-size:14px;color:var(--ink-2);max-width:620px}
+.cap b{color:var(--ink);font-weight:600}
+.ainote{max-width:620px;border:1px solid var(--rule);border-left:3px solid var(--ai);border-radius:0 8px 8px 0;padding:8px 12px;font-size:13.5px;margin:0 0 10px;color:var(--ink-2)}
+.aionly{max-width:620px;border:1px solid var(--ai);background:var(--ai-tint);border-radius:10px;padding:10px 12px;font-size:14px;margin:0 0 10px}
+.aionly p{margin:0 0 8px}
+.strip{display:flex;gap:8px;flex-wrap:wrap;max-width:620px}
+.th{position:relative;width:84px;border:1px solid var(--rule-2);border-radius:8px;padding:4px;background:var(--paper);text-align:left}
+.th[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.th canvas,.th .ph{display:block;width:100%;aspect-ratio:1/1;border-radius:5px;background:var(--well)}
+.th .ph{display:flex;align-items:center;justify-content:center;color:#6C7782;font-size:11px}
+.th .n{display:block;font-size:12px;color:var(--ink-2);margin-top:3px}
+.th .fl{position:absolute;top:8px;right:8px;display:flex;gap:3px}
+.th .fl i{font-style:normal;font-size:10.5px;font-weight:700;border-radius:3px;padding:0 4px;line-height:1.5}
+.fl .A{background:#35C8D8;color:#04262B}.fl .B{background:#B7A8F2;color:#1D1540}
+.loadnote{font-size:13px;color:var(--ink-2);margin:8px 0 0}
+.empty{max-width:620px;aspect-ratio:4/3;border:1px dashed var(--rule-2);border-radius:10px;display:flex;flex-direction:column;justify-content:center;padding:24px;gap:10px;background:var(--paper-2)}
+.empty h3{margin:0;font-size:17px;font-weight:600}
+.empty p{margin:0;color:var(--ink-2)}
+.report{padding:16px 20px 18px;min-width:0}
+.report h2{font-size:15px;font-weight:600;margin:0 0 8px}
+.finds{list-style:none;margin:0 0 14px;padding:0}
+.finds li{margin:0 0 6px}
+.fbtn{display:grid;grid-template-columns:auto 1fr;gap:10px;width:100%;text-align:left;border:1px solid transparent;background:transparent;border-radius:10px;padding:8px 10px;font-family:var(--serif);font-size:16.5px;line-height:1.55}
+.fbtn:hover,.fbtn.hot{background:var(--paper-2);border-color:var(--rule)}
+.fbtn.sel{border-color:var(--rule-2);background:var(--paper-2)}
+.fplain{font-family:var(--serif);font-size:16.5px;line-height:1.55;padding:4px 10px 4px 44px;color:var(--ink)}
+.chip{font-family:var(--sans);font-size:12.5px;font-weight:700;border-radius:5px;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+.chip.A{background:var(--markA-tint);color:var(--markA);border:1.5px solid var(--markA)}
+.chip.B{background:var(--markB-tint);color:var(--markB);border:1.5px solid var(--markB)}
+.rec{display:block;font-family:var(--sans);font-size:13.5px;color:var(--ink);margin-top:4px;padding-left:10px;border-left:3px solid var(--grow);border-radius:0}
+.meta{display:block;font-family:var(--sans);font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.hist{border:1px solid var(--rule);border-radius:10px;padding:10px 12px 8px;margin:0 0 14px}
+.hist h3{font-size:14px;font-weight:600;margin:0}
+.hist p{margin:0;font-size:13px;color:var(--ink-2)}
+.hist svg{display:block;width:100%;max-width:360px;height:auto;margin-top:4px}
+.hist .ln{fill:none;stroke:var(--markA);stroke-width:2}
+.hist .pt{fill:var(--paper);stroke:var(--markA);stroke-width:2}
+.hist .pt.cur{fill:var(--markA)}
+.hist text{font-family:var(--sans);font-size:11px;fill:var(--ink-2)}
+.hist text.v{fill:var(--ink);font-weight:600;font-size:12px}
+.hist .thr{stroke:var(--rule-2);stroke-dasharray:3 3}
+details{border-top:1px solid var(--rule);padding:8px 0}
+details:last-of-type{border-bottom:1px solid var(--rule)}
+summary{cursor:pointer;font-weight:600;font-size:14px;padding:4px 0}
+details p{margin:6px 0;font-family:var(--serif);font-size:15.5px;line-height:1.6}
+.signed{font-size:13px;color:var(--ink-3);margin:10px 0 12px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.err{border:1px solid var(--warn);background:var(--warn-tint);border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px}
+.err p{margin:0 0 8px}
+.term{border:0;background:transparent;padding:0;font:inherit;color:inherit;text-decoration:underline dotted var(--accent);text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:help}
+.def{font-family:var(--sans);font-size:14px;background:var(--accent-tint);border-radius:8px;padding:8px 10px;margin:6px 0}
+.def b{font-weight:600}
+.qs{margin:4px 0 14px;padding-left:20px;font-size:14.5px}
+.qs li{margin:4px 0}
+.pintro{font-size:14px;color:var(--ink-2);margin:0 0 10px}
+.tl{border-top:1px solid var(--rule);padding:12px 20px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tl h2{font-size:14px;font-weight:600;margin:0}
+.tl ol{list-style:none;display:flex;gap:0;margin:0;padding:0;flex-wrap:wrap;align-items:center}
+.tl li{display:flex;align-items:center}
+.tl li+li::before{content:"";width:28px;height:2px;background:var(--rule-2);margin:0 4px}
+.st{border:1px solid var(--rule-2);background:var(--paper);border-radius:8px;padding:6px 12px;text-align:left;min-height:44px}
+.st[aria-current="true"]{border-color:var(--accent);background:var(--accent-tint)}
+.st .d{display:block;font-size:13.5px;font-weight:600}
+.st .s{display:block;font-size:12px;color:var(--ink-2)}
+.st[aria-current="true"] .d{color:var(--accent)}
+.proto{max-width:1240px;margin:0 auto;padding:0 20px 40px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;font-size:13px;color:var(--ink-2)}
+.proto select{font:inherit;font-size:13.5px;padding:6px 8px;border-radius:8px;border:1px solid var(--rule-2);background:var(--paper);color:var(--ink);min-height:36px}
+kbd{font-family:var(--sans);font-size:12px;border:1px solid var(--rule-2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--paper)}
+.toast{position:fixed;left:50%;bottom:0;transform:translateX(-50%);margin-bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-size:14px;max-width:min(560px,92vw);box-shadow:0 6px 24px rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:opacity .18s ease-out}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="chart"><div><b>Rosa Delgado</b>64 years, MRN 4471209</div><div>Sample patient and images, generated for this prototype</div></div>
+<main class="wrap">
+  <section class="im" aria-labelledby="title">
+    <div class="im-head">
+      <div>
+        <h1 id="title">CT chest without contrast</h1>
+        <p class="sub" id="sub"></p>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Show this for">
+        <button role="radio" data-k="m-clin" data-mode="clin">Care team</button>
+        <button role="radio" data-k="m-pat" data-mode="pat">Patient</button>
+      </div>
+    </div>
+    <p class="refnote" id="refnote"></p>
+    <div class="im-body">
+      <div class="viewer" id="viewer"></div>
+      <div class="report" id="report" aria-live="off"></div>
+    </div>
+    <div class="tl" id="timeline"></div>
+  </section>
+</main>
+<div class="proto">
+  <label>Preview state <select id="pstate" data-k="pstate">
+    <option value="normal">Normal</option>
+    <option value="loading">Key images still loading</option>
+    <option value="reportonly">No key images marked</option>
+    <option value="viewerdown">Hospital viewer not responding</option>
+  </select></label>
+  <span>Shortcuts: <kbd>←</kbd> <kbd>→</kbd> key images, <kbd>C</kbd> compare, <kbd>G</kbd> show change</span>
+  <button class="btn q" id="reset">Reset prototype</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function $(s,r){return (r||document).querySelector(s);}
+  function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function say(m){var l=$('#live');l.textContent='';setTimeout(function(){l.textContent=m;},30);}
+  var toastT=null;
+  function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},4200);}
+
+  var PX_PER_MM = 256/360;
+  var STUDIES = [
+    {id:'2025-09-10', date:'10 Sep 2025', short:'Sep 2025', A:6, B:4, reader:'Dr S. Okoro', time:'11:05',
+     clin:[{f:'A',t:'New 6 mm solid nodule in the right upper lobe.',rec:'Suggest follow-up CT in 6 months.'},{f:'B',t:'4 mm calcified granuloma in the left lower lobe. Benign.'},{t:'No pleural effusion. No enlarged lymph nodes.'}],
+     pat:[{f:'A',t:'A new small spot in your right lung, 6 mm across. Most spots this size are harmless. Your doctor will check it again with another scan in about 6 months.'},{f:'B',t:'A tiny calcium spot in your left lung, 4 mm across. It usually comes from an old infection that has healed, and it is not a concern.'},{t:'No fluid around your lungs and no swollen glands.'}],
+     next:['What does the spot look like?','When is my next scan?']},
+    {id:'2026-03-14', date:'14 Mar 2026', short:'Mar 2026', A:8, B:4, reader:'Dr M. Chen', time:'09:18',
+     clin:[{f:'A',t:'Right upper lobe solid nodule, 8 mm, increased from 6 mm on 10 Sep 2025.',rec:'Suggest follow-up CT in 6 months.'},{f:'B',t:'Left lower lobe calcified granuloma, 4 mm, unchanged.'},{t:'No pleural effusion. No enlarged lymph nodes.'}],
+     pat:[{f:'A',t:'The small spot in your right lung now measures 8 mm. It was 6 mm last September, so it has grown a little. Your doctor will check it again with another scan in about 6 months.'},{f:'B',t:'The tiny calcium spot in your left lung has not changed. It is not a concern.'},{t:'No fluid around your lungs and no swollen glands.'}],
+     next:['Does the growth change anything?','Should the next scan be sooner?']},
+    {id:'2026-09-12', date:'12 Sep 2026', short:'Sep 2026', A:11, B:4, reader:'Dr M. Chen', time:'16:42',
+     clin:[{f:'A',t:'Right upper lobe solid nodule, 11 mm, increased from 8 mm on 14 Mar 2026.',rec:'Suggest PET-CT and referral to pulmonology.'},{f:'B',t:'Left lower lobe calcified granuloma, 4 mm, unchanged. Benign.'},{t:'No pleural effusion. No enlarged lymph nodes.'}],
+     pat:[{f:'A',t:'The small spot in your right lung now measures 11 mm, about the size of a pea. It was 8 mm in March, so it has grown. Your doctor will likely suggest more tests to find out what it is.'},{f:'B',t:'The tiny calcium spot in your left lung has not changed. It is not a concern.'},{t:'No fluid around your lungs and no swollen glands.'}],
+     next:['What tests do I need next?','How soon should they happen?','What could the spot be?']}
+  ];
+  var LATEST = STUDIES.length-1;
+  var FIND = {A:{slice:'upper',x:74,y:108,name:'Nodule, right upper lobe',pname:'The spot your doctor is watching'},
+              B:{slice:'lower',x:178,y:150,name:'Calcified granuloma, left lower lobe',pname:'Old, healed spot'}};
+  var AIMARKS = [{id:'aiA',img:0,x:74,y:108,agrees:'A'},{id:'aiA2',img:1,x:74,y:108,agrees:'A'},{id:'aiC',img:3,x:196,y:112,agrees:null}];
+  var KEYS = [
+    {slice:'upper',zoom:false,label:'Upper lungs',plabel:'Top of your lungs',f:['A']},
+    {slice:'upper',zoom:true,label:'Finding A, magnified 4 times',f:['A']},
+    {slice:'lower',label:'Lower lungs',plabel:'Bottom of your lungs',f:['B']},
+    {slice:'mid',label:'Mid chest',f:[]}
+  ];
+  var ZOOM = {sx:42,sy:76,s:64};
+  var GLOSS = {
+    'calcified granuloma':'A tiny spot of calcium left behind by an old infection that has healed. It is not harmful.',
+    'right upper lobe':'The top part of the right lung.',
+    'left lower lobe':'The bottom part of the left lung.',
+    'pleural effusion':'Fluid collecting around the lungs.',
+    'lymph nodes':'Small glands that help fight infection. They can swell when the body is fighting illness.',
+    'nodule':'A small, round spot in the lung. Most are harmless, but ones that grow need more tests.',
+    'PET-CT':'A scan that shows how active cells are. It helps doctors tell whether a spot needs treatment.',
+    'pulmonology':'The team of doctors who specialise in lungs.'
+  };
+  var WIN = {lung:{c:-600,w:1500,label:'Lung'},soft:{c:40,w:400,label:'Soft tissue'},bone:{c:400,w:1800,label:'Bone'}};
+
+  var S = {study:LATEST,img:0,win:'lung',compare:'off',swipe:50,ghost:false,ai:false,aiAsk:false,aiOnly:false,mode:'clin',sel:null,def:null,pstate:'normal',ready:{},err:false};
+
+  /* ---------- synthetic CT ---------- */
+  function rng(seed){var s=seed%2147483647;if(s<=0)s+=2147483646;return function(){s=s*16807%2147483647;return (s-1)/2147483646;};}
+  var SL = {
+    upper:{body:[128,134,108,80],lungs:[[82,122,40,54],[174,122,38,52]],med:[[128,122,22,30]],trachea:[128,110,7],spine:[128,196,14]},
+    mid:{body:[128,136,112,86],lungs:[[80,128,44,62],[178,128,40,60]],med:[[140,140,36,42]],aorta:[152,182,10],spine:[128,204,15],blob:[196,112,2.2,-40]},
+    lower:{body:[128,138,114,88],lungs:[[78,120,40,46],[180,124,38,50]],liver:[86,178,52,32],med:[[142,150,42,42]],spine:[128,206,15]}
+  };
+  var N=256, BASE={};
+  function inE(x,y,e){var dx=(x-e[0])/e[2],dy=(y-e[1])/e[3];return dx*dx+dy*dy<=1;}
+  function disc(a,cx,cy,r,v){for(var y=Math.floor(cy-r-1);y<=cy+r+1;y++)for(var x=Math.floor(cx-r-1);x<=cx+r+1;x++){if(x<0||y<0||x>=N||y>=N)continue;var d=Math.hypot(x-cx,y-cy);if(d<=r)a[y*N+x]=v;else if(d<=r+0.8)a[y*N+x]=a[y*N+x]*0.5+v*0.5;}}
+  function buildBase(kind){
+    if(BASE[kind]) return BASE[kind];
+    var c=SL[kind], a=new Float32Array(N*N), R=rng(kind.length*977+13), x, y, i;
+    for(i=0;i<a.length;i++) a[i]=-1000;
+    for(y=0;y<N;y++)for(x=0;x<N;x++){var dx=(x-c.body[0])/c.body[2],dy=(y-c.body[1])/c.body[3],q=dx*dx+dy*dy;if(q<=1)a[y*N+x]=q>0.8?-95:42;}
+    if(c.liver)for(y=0;y<N;y++)for(x=0;x<N;x++)if(inE(x,y,c.liver))a[y*N+x]=58;
+    c.lungs.forEach(function(L){
+      for(y=0;y<N;y++)for(x=0;x<N;x++)if(inE(x,y,L))a[y*N+x]=-860;
+      for(var k=0;k<90;k++){var px,py,t=0;do{px=L[0]+(R()*2-1)*L[2];py=L[1]+(R()*2-1)*L[3];t++;}while(!inE(px,py,[L[0],L[1],L[2]*0.9,L[3]*0.9])&&t<20);var medial=Math.abs(px-128)<Math.abs(L[0]-128);disc(a,px,py,medial?0.7+R()*1.3:0.35+R()*0.55,medial?-320+R()*260:-620+R()*200);}
+    });
+    if(c.blob) disc(a,c.blob[0],c.blob[1],c.blob[2],c.blob[3]);
+    c.med.forEach(function(M){for(y=0;y<N;y++)for(x=0;x<N;x++)if(inE(x,y,M))a[y*N+x]=46;});
+    if(c.aorta) disc(a,c.aorta[0],c.aorta[1],c.aorta[2],52);
+    if(c.trachea) disc(a,c.trachea[0],c.trachea[1],c.trachea[2],-1000);
+    var sp=c.spine; disc(a,sp[0],sp[1],sp[2],680); disc(a,sp[0],sp[1],sp[2]-4,320); disc(a,sp[0],sp[1]+sp[2]+5,5,24); disc(a,sp[0],sp[1]+sp[2]+13,3.5,600);
+    for(var ang=0;ang<360;ang+=21){var rad=ang*Math.PI/180;if(Math.sin(rad)<-0.55)continue;var rx=c.body[0]+Math.cos(rad)*c.body[2]*0.9,ry=c.body[1]+Math.sin(rad)*c.body[3]*0.9;disc(a,rx,ry,3.2,640);disc(a,rx,ry,1.6,260);}
+    for(i=0;i<a.length;i++){if(a[i]>-990){a[i]+=(R()-0.5)*(a[i]<-500?60:34);}}
+    BASE[kind]=a; return a;
+  }
+  var CACHE={};
+  function imageCanvas(kind,studyIdx,win){
+    var key=kind+'|'+studyIdx+'|'+win; if(CACHE[key]) return CACHE[key];
+    var base=buildBase(kind), a=new Float32Array(base), st=STUDIES[studyIdx];
+    if(kind==='upper'){var r=st.A/2*PX_PER_MM, f=FIND.A;for(var y=Math.floor(f.y-r-3);y<=f.y+r+3;y++)for(var x=Math.floor(f.x-r-3);x<=f.x+r+3;x++){var th=Math.atan2(y-f.y,x-f.x),re=r*(1+0.13*Math.sin(5*th+0.7)),d=Math.hypot(x-f.x,y-f.y);if(d<=re)a[y*N+x]=34;else if(d<=re+1)a[y*N+x]=a[y*N+x]*0.55+34*0.45;}}
+    if(kind==='lower'){disc(a,FIND.B.x,FIND.B.y,st.B/2*PX_PER_MM,460);}
+    var w=WIN[win], lo=w.c-w.w/2, cv=document.createElement('canvas'); cv.width=N; cv.height=N;
+    var ctx=cv.getContext('2d'), id=ctx.createImageData(N,N);
+    for(var i=0;i<a.length;i++){var g=Math.max(0,Math.min(1,(a[i]-lo)/w.w))*255;id.data[i*4]=g;id.data[i*4+1]=g;id.data[i*4+2]=g;id.data[i*4+3]=255;}
+    ctx.putImageData(id,0,0); CACHE[key]=cv; return cv;
+  }
+  function paint(canvas,keyIdx,studyIdx,win,size){
+    var k=KEYS[keyIdx], src=imageCanvas(k.slice,studyIdx,win); size=size||640;
+    canvas.width=size; canvas.height=size; var ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+    if(k.zoom){ try{ ctx.filter='blur('+(size/640*6.5).toFixed(2)+'px)'; }catch(e){} ctx.drawImage(src,ZOOM.sx-2,ZOOM.sy-2,ZOOM.s+4,ZOOM.s+4,-size*2/ZOOM.s,-size*2/ZOOM.s,size+size*4/ZOOM.s,size+size*4/ZOOM.s); try{ ctx.filter='none'; }catch(e){} } else ctx.drawImage(src,0,0,size,size);
+  }
+  function map(keyIdx,x,y,r){var k=KEYS[keyIdx];if(k.zoom){var f=256/ZOOM.s;return {x:(x-ZOOM.sx)*f,y:(y-ZOOM.sy)*f,r:r*f};}return {x:x,y:y,r:r};}
+  function sizeOf(f,studyIdx){return STUDIES[studyIdx][f];}
+
+  /* ---------- rendering ---------- */
+  function visibleKeys(){ return S.mode==='pat' ? [0,2] : [0,1,2,3]; }
+  function keyNum(idx){ return visibleKeys().indexOf(idx)+1; }
+  function klabel(i){ return S.mode==='pat' && KEYS[i].plabel ? KEYS[i].plabel : KEYS[i].label; }
+  function chipPos(xp,yp,align){ var right = xp<62; return 'left:'+(right?xp+1.5:xp-1.5)+'%;top:'+yp+'%;transform:translate('+(right?'0':'-100%')+','+(align||'-50%')+')'; }
+
+  function stageEl(studyIdx,opts){
+    opts=opts||{};
+    var el=document.createElement('div'); el.className='stage';
+    var k=KEYS[S.img], st=STUDIES[studyIdx];
+    el.setAttribute('role','group');
+    el.setAttribute('aria-label','Key image '+keyNum(S.img)+', '+klabel(S.img)+', '+st.date+', '+WIN[S.win].label.toLowerCase()+' contrast');
+    var ready = opts.prior || S.ready[S.img];
+    if(!ready){ el.innerHTML='<div class="loading"><span>Loading key image '+keyNum(S.img)+'</span><div class="bar"><span></span></div></div>'; return el; }
+    var cv=document.createElement('canvas'); cv.setAttribute('aria-hidden','true'); el.appendChild(cv); paint(cv,S.img,studyIdx,S.win);
+    if(opts.swipe){
+      var cv2=document.createElement('canvas'); cv2.setAttribute('aria-hidden','true'); cv2.style.clipPath='inset(0 '+(100-S.swipe)+'% 0 0)'; cv2.id='swipeTop'; el.appendChild(cv2); paint(cv2,S.img,studyIdx-1,S.win);
+    }
+    var svg='<svg class="ov" viewBox="0 0 256 256" preserveAspectRatio="none" aria-hidden="true">';
+    var chips='';
+    var markStudy=studyIdx;
+    if(opts.label){ el.insertAdjacentHTML('beforeend','<span class="corner l">'+esc(opts.label)+'</span>'); }
+    if(opts.swipe){ el.insertAdjacentHTML('beforeend','<span class="corner l">Prior, '+STUDIES[studyIdx-1].date+'</span><span class="corner r">Current, '+st.date+'</span>'); }
+    if(!k.zoom){ el.insertAdjacentHTML('beforeend','<span class="orient l">R</span><span class="orient r">L</span>'); }
+    if(!opts.swipe) k.f.forEach(function(f){
+      var F=FIND[f], m=map(S.img,F.x,F.y,sizeOf(f,markStudy)/2*PX_PER_MM+3.5), hot=S.sel===f;
+      svg+='<circle class="ring '+f+(hot?' hot':'')+'" cx="'+m.x+'" cy="'+m.y+'" r="'+m.r+'"/>';
+      if(hot && opts.pulse && !reduce) svg+='<circle class="pulse" cx="'+m.x+'" cy="'+m.y+'" r="'+(m.r+10)+'"/>';
+      if(S.ghost && f==='A' && markStudy>0 && S.mode==='clin'){
+        var pm=map(S.img,F.x,F.y,sizeOf('A',markStudy-1)/2*PX_PER_MM);
+        svg+='<circle class="ring ghost" cx="'+pm.x+'" cy="'+pm.y+'" r="'+pm.r+'"/>';
+        var gx=Math.max(2,Math.min(70,(m.x-m.r)/256*100)), gy=(m.y+m.r)/256*100+3;
+        chips+='<span class="mk ghost" style="left:'+gx+'%;top:'+gy+'%;transform:none">Dotted: '+sizeOf('A',markStudy-1)+' mm in '+STUDIES[markStudy-1].short+'</span>';
+      }
+      var label = S.mode==='pat' ? FIND[f].pname : f+' '+sizeOf(f,markStudy)+' mm';
+      var cx=(m.x+m.r)/256*100; if(cx>62) cx=(m.x-m.r)/256*100;
+      chips+='<button class="mk '+f+(hot?' hot':'')+'" data-k="mk-'+f+'" data-mark="'+f+'" style="'+chipPos(cx,(m.y-m.r)/256*100)+'" aria-label="Finding '+f+', '+esc(FIND[f].name)+', '+sizeOf(f,markStudy)+' millimetres. Show in report">'+esc(label)+'</button>';
+    });
+    if(S.ai && studyIdx===LATEST && S.mode==='clin' && !opts.prior && !opts.swipe){
+      AIMARKS.filter(function(a){return a.img===S.img;}).forEach(function(a){
+        var m=map(S.img,a.x,a.y,a.agrees?(sizeOf('A',studyIdx)/2*PX_PER_MM+9):7);
+        svg+='<rect class="ring ai" x="'+(m.x-m.r)+'" y="'+(m.y-m.r)+'" width="'+(m.r*2)+'" height="'+(m.r*2)+'" rx="2"/>';
+        if(a.agrees) chips+='<span class="mk ai" style="left:'+Math.max(1,(m.x-m.r)/256*100)+'%;top:'+((m.y-m.r)/256*100-1)+'%;transform:translate(0,-100%);pointer-events:none">AI agrees</span>';
+        else { var ax=(m.x+m.r)/256*100; if(ax>62) ax=(m.x-m.r)/256*100; chips+='<button class="mk ai" data-k="mk-aic" data-aionly="1" style="'+chipPos(ax,m.y/256*100)+'" aria-label="AI-only mark, not described in the report. Show details">AI only</button>'; }
+      });
+    }
+    svg+='</svg>';
+    el.insertAdjacentHTML('beforeend',svg+chips);
+    if(opts.swipe){
+      el.insertAdjacentHTML('beforeend','<div class="handle" id="handle" style="left:'+S.swipe+'%"><button class="grip" id="grip" tabindex="-1" aria-hidden="true">⇆</button></div>');
+    }
+    return el;
+  }
+
+  function renderViewer(){
+    var v=$('#viewer'), h='';
+    var clin=S.mode==='clin', hasPrior=S.study>0;
+    if(S.pstate==='reportonly'){
+      v.innerHTML='<div class="empty"><h3>No key images for this study</h3><p>The radiologist didn\u2019t mark key images. The full study, all 312 images, is in the hospital viewer.</p><div class="row"><button class="btn" data-act="open" data-k="open-e">Open full viewer</button></div></div>';
+      return;
+    }
+    if(clin){
+      h+='<div class="tools" role="toolbar" aria-label="Image tools">';
+      h+='<span><span class="tool-lbl" id="wl">Contrast</span><span class="seg" role="group" aria-labelledby="wl">';
+      Object.keys(WIN).forEach(function(w){h+='<button data-k="w-'+w+'" data-win="'+w+'" aria-pressed="'+(S.win===w)+'">'+WIN[w].label+'</button>';});
+      h+='</span></span>';
+      h+='<span><span class="tool-lbl" id="cl">Compare</span><span class="seg" role="group" aria-labelledby="cl">';
+      [['off','Off'],['swipe','Swipe'],['side','Side by side']].forEach(function(c){h+='<button data-k="c-'+c[0]+'" data-cmp="'+c[0]+'" aria-pressed="'+(S.compare===c[0])+'">'+c[1]+'</button>';});
+      h+='</span></span>';
+      h+='<button class="tog chg" data-k="ghost" data-act="ghost" aria-pressed="'+S.ghost+'"><span class="dot" aria-hidden="true"></span>Show change</button>';
+      h+='<button class="tog ai" data-k="ai" data-act="ai" aria-pressed="'+S.ai+'"><span class="dot" aria-hidden="true"></span>AI second look</button>';
+      h+='</div>';
+      if(S.aiAsk){
+        h+='<div class="ask" role="region" aria-label="Before showing AI marks"><p>Have you looked at the images yourself first? AI marks can steer where you look, and a missing mark doesn\u2019t mean the area is normal.</p><div class="row"><button class="btn pri" data-act="aiyes" data-k="aiyes">Show AI marks</button><button class="btn" data-act="aino" data-k="aino">Not yet</button></div></div>';
+      }
+      if(!hasPrior && S.compare!=='off'){ S.compare='off'; }
+    }
+    var cmp = clin ? S.compare : 'off';
+    if(cmp==='side'){ h+='<div class="stages two" id="stages"></div>'; }
+    else { h+='<div class="stages" id="stages"></div>'; }
+    if(cmp==='swipe'){ h+='<div class="swipectl"><label for="swipe">Prior</label><input type="range" id="swipe" data-k="swipe" min="0" max="100" step="1" value="'+S.swipe+'" aria-label="Swipe between prior and current. Left shows more of the current study"><span>Current</span></div>'; }
+    if(clin && !hasPrior && (S.compare!=='off')) {}
+    var k=KEYS[S.img], st=STUDIES[S.study];
+    h+='<p class="cap"><b>'+(clin?'Key image ':'Picture ')+keyNum(S.img)+' of '+visibleKeys().length+'.</b> '+esc(klabel(S.img))+(clin&&k.f.length?', finding '+k.f.join(' and '):'')+'.'+(clin&&cmp==='swipe'?' Drag the handle or use the slider to sweep between scans.':'')+(clin&&!hasPrior&&S.compare==='off'?'':'')+(clin && S.study===0?' This is the earliest study, so there is nothing to compare with.':'')+'</p>';
+    if(S.ai && clin && S.study===LATEST){ h+='<p class="ainote">AI marks are a second look. The radiologist\u2019s report is the result of record, and no mark doesn\u2019t mean normal.</p>'; }
+    if(S.ai && clin && S.study!==LATEST){ h+='<p class="ainote">AI marks are only available for the latest study.</p>'; }
+    if(S.aiOnly && S.ai && clin && S.study===LATEST){
+      h+='<div class="aionly" role="region" aria-label="AI-only mark"><p><b>The AI marked a spot the report doesn\u2019t describe.</b> It may be a blood vessel seen end-on. Look at it in the full viewer, or ask radiology before acting on it.</p><div class="row"><button class="btn" data-act="openai" data-k="openai">Open this spot in full viewer</button><button class="btn" data-act="askrad" data-k="askrad">Ask radiology</button><button class="btn q" data-act="aidismiss" data-k="aidismiss">Dismiss</button></div></div>';
+    }
+    h+='<div class="strip" role="list" aria-label="Key images" id="strip"></div>';
+    var keys=visibleKeys(), rc=keys.filter(function(i){return S.ready[i];}).length;
+    if(rc<keys.length) h+='<p class="loadnote" id="loadnote">'+rc+' of '+keys.length+' key images ready. The report is available now.</p>';
+    v.innerHTML=h;
+    var stages=$('#stages');
+    if(cmp==='side'){ stages.appendChild(stageEl(S.study-1,{prior:true,label:'Prior, '+STUDIES[S.study-1].date})); stages.appendChild(stageEl(S.study,{label:'Current, '+st.date,pulse:true})); }
+    else if(cmp==='swipe' && S.ready[S.img]){ stages.appendChild(stageEl(S.study,{swipe:true,pulse:true})); }
+    else stages.appendChild(stageEl(S.study,{pulse:true}));
+    var strip=$('#strip');
+    keys.forEach(function(i,n){
+      var K=KEYS[i], b=document.createElement('button'); b.className='th'; b.setAttribute('role','listitem'); b.dataset.k='th-'+i; b.dataset.img=i;
+      b.setAttribute('aria-current',S.img===i?'true':'false');
+      b.setAttribute('aria-label','Key image '+(n+1)+', '+klabel(i)+(S.ready[i]?'':', loading'));
+      if(S.ready[i]){ var c=document.createElement('canvas'); c.setAttribute('aria-hidden','true'); b.appendChild(c); paint(c,i,S.study,S.win,120); }
+      else b.insertAdjacentHTML('beforeend','<span class="ph" aria-hidden="true">Loading</span>');
+      b.insertAdjacentHTML('beforeend','<span class="n" aria-hidden="true">'+(n+1)+'. '+esc(K.zoom?'Magnified':klabel(i))+'</span>');
+      if(K.f.length) b.insertAdjacentHTML('beforeend','<span class="fl" aria-hidden="true">'+K.f.map(function(f){return '<i class="'+f+'">'+f+'</i>';}).join('')+'</span>');
+      strip.appendChild(b);
+    });
+    bindSwipe();
+  }
+
+  function linkTerms(text){
+    var keys=Object.keys(GLOSS).sort(function(a,b){return b.length-a.length;});
+    var re=new RegExp('('+keys.map(function(k){return k.replace(/[-]/g,'\\-');}).join('|')+')','gi');
+    return esc(text).replace(re,function(m){var key=keys.filter(function(k){return k.toLowerCase()===m.toLowerCase();})[0];return '<button class="term" data-term="'+esc(key)+'" data-k="term-'+esc(key)+'">'+m+'</button>';});
+  }
+  function spark(){
+    var W=340,H=110,pad=34, xs=STUDIES.map(function(s,i){return pad+i*(W-2*pad)/(STUDIES.length-1);});
+    function yv(mm){return 86-(mm/14)*70;}
+    var pts=STUDIES.map(function(s,i){return xs[i]+','+yv(s.A);}).join(' ');
+    var g='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+(S.mode==='pat'?'Size of the spot over time: ':'Finding A size over time: ')+STUDIES.map(function(s){return s.date+' '+s.A+' millimetres';}).join(', ')+'">';
+    
+    g+='<polyline class="ln" points="'+pts+'"/>';
+    STUDIES.forEach(function(s,i){g+='<circle class="pt'+(i===S.study?' cur':'')+'" cx="'+xs[i]+'" cy="'+yv(s.A)+'" r="5"/><text class="v" text-anchor="middle" x="'+xs[i]+'" y="'+(yv(s.A)-10)+'">'+s.A+' mm</text><text text-anchor="middle" x="'+xs[i]+'" y="104">'+s.short+'</text>';});
+    return g+'</svg>';
+  }
+  function renderReport(){
+    var r=$('#report'), st=STUDIES[S.study], h='', clin=S.mode==='clin';
+    if(clin){
+      h+='<h2>Impression</h2><ul class="finds">';
+      st.clin.forEach(function(it){
+        if(it.f){
+          var imgs=KEYS.map(function(k,i){return k.f.indexOf(it.f)>-1?keyNum(i):null;}).filter(Boolean);
+          h+='<li><button class="fbtn'+(S.sel===it.f?' sel':'')+'" data-k="f-'+it.f+'" data-find="'+it.f+'" aria-pressed="'+(S.sel===it.f)+'"><span class="chip '+it.f+'" aria-hidden="true">'+it.f+'</span><span>'+esc(it.t)+(it.rec?'<span class="rec">'+esc(it.rec)+'</span>':'')+'<span class="meta">Key image'+(imgs.length>1?'s ':' ')+imgs.join(' and ')+'</span></span></button></li>';
+        } else h+='<li class="fplain">'+esc(it.t)+'</li>';
+      });
+      h+='</ul>';
+      if(S.study>0){ h+='<div class="hist"><h3>Finding A over time</h3><p>Growing: '+STUDIES.map(function(s){return s.A;}).join(' to ')+' mm across three scans.</p>'+spark()+'</div>'; }
+      h+='<details><summary>Findings</summary><p>Lungs: '+st.A+' mm solid nodule in the right upper lobe. '+st.B+' mm calcified granuloma in the left lower lobe. No consolidation.</p><p>Mediastinum: normal heart size. No enlarged lymph nodes.</p><p>Pleura: no pleural effusion.</p><p>Bones: no suspicious lesions.</p></details>';
+      h+='<details><summary>Technique</summary><p>CT of the chest without contrast, 1 mm slices, 312 images.</p></details>';
+      h+='<p class="signed">Final report by '+st.reader+', '+st.date+' at '+st.time+'.</p>';
+      h+='<div class="acts"><button class="btn pri" data-act="open" data-k="open">Open full viewer</button><button class="btn" data-act="copy" data-k="copy">Copy link to this view</button></div>';
+    } else {
+      h+='<p class="pintro">Your care team has seen these results. Your doctor will go through them with you.</p>';
+      h+='<h2>What your scan found</h2><ul class="finds">';
+      st.pat.forEach(function(it){
+        if(it.f) h+='<li><button class="fbtn'+(S.sel===it.f?' sel':'')+'" data-k="f-'+it.f+'" data-find="'+it.f+'" aria-pressed="'+(S.sel===it.f)+'"><span class="chip '+it.f+'" aria-hidden="true">'+it.f+'</span><span>'+esc(it.t)+'<span class="meta">Show me on the scan</span></span></button></li>';
+        else h+='<li class="fplain">'+esc(it.t)+'</li>';
+      });
+      h+='</ul>';
+      if(S.study>0) h+='<div class="hist"><h3>Size of the spot over time</h3><p>Measured on each of your chest scans.</p>'+spark()+'</div>';
+      h+='<h2>Questions you could ask</h2><ul class="qs">'+st.next.map(function(q){return '<li>'+esc(q)+'</li>';}).join('')+'</ul>';
+      h+='<details'+(S.def?' open':'')+'><summary>Read the report your doctor received</summary>';
+      st.clin.forEach(function(it){h+='<p>'+linkTerms(it.t+(it.rec?' '+it.rec:''))+'</p>';});
+      if(S.def) h+='<div class="def" role="note"><b>'+esc(S.def)+':</b> '+esc(GLOSS[S.def])+' <button class="btn q" data-act="defclose" data-k="defclose">Close</button></div>';
+      h+='<p style="font-family:var(--sans);font-size:13px;color:var(--ink-2)">Underlined words have a plain explanation. Select one to read it.</p></details>';
+      h+='<div class="acts" style="margin-top:12px"><button class="btn pri" data-act="askteam" data-k="askteam">Ask your care team</button></div>';
+    }
+    if(S.err && clin){
+      h+='<div class="err" role="alert"><p><b>The hospital viewer didn\u2019t respond.</b> The report and key images here are still up to date.</p><div class="row"><button class="btn" data-act="open" data-k="retry">Try again</button><button class="btn" data-act="copy" data-k="copy2">Copy study link</button></div></div>';
+    }
+    r.innerHTML=h;
+  }
+  function renderHead(){
+    var st=STUDIES[S.study];
+    $('#sub').textContent = st.date+(S.study===LATEST?', latest':'')+'. Final report by '+st.reader+', radiology.';
+    $('#refnote').textContent = S.mode==='clin' ? 'Reference view for the care team. Diagnostic reading happens in the hospital viewer.' : 'This is how the patient sees this result in their portal.';
+    $$('[data-mode]').forEach(function(b){b.setAttribute('aria-checked',S.mode===b.dataset.mode?'true':'false');b.tabIndex=S.mode===b.dataset.mode?0:-1;});
+    var tl=$('#timeline'), h='<h2>'+(S.mode==='clin'?'Chest CTs':'Your chest scans')+'</h2><ol>';
+    STUDIES.forEach(function(s,i){h+='<li><button class="st" data-k="st-'+i+'" data-study="'+i+'" aria-current="'+(S.study===i)+'"><span class="d">'+s.date+'</span><span class="s">'+(S.mode==='clin'?'Finding A '+s.A+' mm':'Spot '+s.A+' mm')+(i===LATEST?', latest':'')+'</span></button></li>';});
+    tl.innerHTML=h+'</ol>';
+  }
+  function render(opts){
+    var ak=document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
+    renderHead(); renderViewer(); renderReport(); writeHash();
+    if(ak){ var el=document.querySelector('[data-k="'+ak+'"]'); if(el && (!opts || !opts.noFocus)) el.focus({preventScroll:true}); }
+  }
+
+  /* ---------- loading simulation ---------- */
+  var loadTimers=[];
+  function startLoad(){
+    loadTimers.forEach(clearTimeout); loadTimers=[]; S.ready={};
+    var order=[S.img].concat([0,1,2,3].filter(function(i){return i!==S.img;}));
+    order.forEach(function(i,n){
+      if(S.pstate==='loading' && n>=2) return;
+      loadTimers.push(setTimeout(function(){ S.ready[i]=true; render({noFocus:true}); if(Object.keys(S.ready).length===4) say('All key images loaded'); }, reduce?60:260+n*330));
+    });
+  }
+
+  /* ---------- actions ---------- */
+  function selectFinding(f,fromMark){
+    S.sel=f;
+    var imgs=visibleKeys().filter(function(i){return KEYS[i].f.indexOf(f)>-1;});
+    if(imgs.length && KEYS[S.img].f.indexOf(f)<0) S.img=imgs[0];
+    render();
+    var st=STUDIES[S.study];
+    say('Finding '+f+', '+FIND[f].name+', '+st[f]+' millimetres, shown on key image '+keyNum(S.img));
+    if(fromMark){ var b=document.querySelector('[data-find="'+f+'"]'); if(b){ b.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'}); b.focus({preventScroll:true}); } }
+  }
+  function openViewer(){
+    if(S.pstate==='viewerdown'){ S.err=true; render(); say('The hospital viewer did not respond'); return; }
+    S.err=false; render();
+    toast('Opening '+STUDIES[S.study].date+' CT in the hospital viewer at key image '+keyNum(S.img)+(S.sel?' with finding '+S.sel+' selected':'')+'.');
+  }
+  function copyLink(){
+    var url=location.href.split('#')[0]+'#'+hashStr();
+    var msg='Link copied. It opens this study at key image '+keyNum(S.img)+(S.sel?' with finding '+S.sel+' selected':'')+'.';
+    try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(function(){toast(msg);},function(){toast('Copy this link: '+url);}); } else toast('Copy this link: '+url); }catch(e){ toast('Copy this link: '+url); }
+  }
+
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('button'); if(!t) return;
+    if(t.dataset.mode){ if(S.mode!==t.dataset.mode){ S.mode=t.dataset.mode; S.def=null; S.aiAsk=false; S.aiOnly=false; if(S.mode==='pat'){S.compare='off';S.win='lung';if(visibleKeys().indexOf(S.img)<0)S.img=0;} render(); say(S.mode==='pat'?'Showing the patient view':'Showing the care team view'); } return; }
+    if(t.dataset.win){ S.win=t.dataset.win; render(); say(WIN[S.win].label+' contrast'); return; }
+    if(t.dataset.cmp){ if(S.study===0 && t.dataset.cmp!=='off'){ toast('This is the earliest study, so there\u2019s nothing to compare it with.'); return; } S.compare=t.dataset.cmp; if(S.compare!=='off' && S.img===0) S.img=1; render(); say(S.compare==='off'?'Comparison off':(S.compare==='swipe'?'Swipe comparison with '+STUDIES[S.study-1].date:'Side by side with '+STUDIES[S.study-1].date)); return; }
+    if(t.dataset.img!=null && t.classList.contains('th')){ S.img=+t.dataset.img; render(); return; }
+    if(t.dataset.find){ if(S.sel===t.dataset.find){ S.sel=null; render(); return; } selectFinding(t.dataset.find,false); return; }
+    if(t.dataset.mark){ selectFinding(t.dataset.mark,true); return; }
+    if(t.dataset.aionly){ S.aiOnly=true; render(); var p=$('.aionly'); if(p) p.scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'}); return; }
+    if(t.dataset.study!=null){ var n=+t.dataset.study; if(n!==S.study){ S.study=n; S.aiOnly=false; if(n===0) S.compare='off'; startLoad(); render(); say('Showing '+STUDIES[n].date); } return; }
+    if(t.dataset.term){ S.def=t.dataset.term; render(); return; }
+    var a=t.dataset.act;
+    if(a==='ghost'){ if(S.study===0){ toast('Show change needs an earlier study to compare with.'); return; } S.ghost=!S.ghost; if(S.ghost && !KEYS[S.img].zoom) S.img=1; render(); say(S.ghost?'Showing the magnified view. The dotted ring is the size of finding A on '+STUDIES[S.study-1].date:'Change hidden'); }
+    else if(a==='ai'){ if(S.ai){ S.ai=false; S.aiOnly=false; S.aiAsk=false; render(); } else { S.aiAsk=true; render(); var y=$('[data-k="aiyes"]'); if(y) y.focus(); } }
+    else if(a==='aiyes'){ S.ai=true; S.aiAsk=false; render(); say('AI marks shown. One AI mark is not described in the report, on key image 4.'); }
+    else if(a==='aino'){ S.aiAsk=false; render(); }
+    else if(a==='aidismiss'){ S.aiOnly=false; render(); }
+    else if(a==='openai'){ if(S.pstate==='viewerdown'){ S.err=true; render(); return; } toast('Opening the latest CT in the hospital viewer at the AI-marked spot on key image 4.'); }
+    else if(a==='askrad'){ toast('A message to radiology is ready to send, with this study and the AI-marked spot attached.'); }
+    else if(a==='open'){ openViewer(); }
+    else if(a==='copy'){ copyLink(); }
+    else if(a==='defclose'){ S.def=null; render(); }
+    else if(a==='askteam'){ toast('A new message to your care team is open, with this scan attached.'); }
+  });
+  document.addEventListener('pointerover',function(e){
+    var f=e.target.closest && e.target.closest('[data-find],[data-mark]'); if(!f) return;
+    var id=f.dataset.find||f.dataset.mark;
+    $$('.mk[data-mark="'+id+'"]').forEach(function(m){m.classList.add('hot');});
+    $$('.ring.'+id).forEach(function(m){m.classList.add('hot');});
+    $$('[data-find="'+id+'"]').forEach(function(m){m.classList.add('hot');});
+  });
+  document.addEventListener('pointerout',function(e){
+    var f=e.target.closest && e.target.closest('[data-find],[data-mark]'); if(!f) return;
+    var id=f.dataset.find||f.dataset.mark; if(S.sel===id) return;
+    $$('.mk[data-mark="'+id+'"], .ring.'+id+', [data-find="'+id+'"]').forEach(function(m){m.classList.remove('hot');});
+  });
+  document.addEventListener('keydown',function(e){
+    var tag=(e.target.tagName||'').toLowerCase();
+    if(e.target.closest && e.target.closest('[role="radiogroup"]') && (e.key==='ArrowLeft'||e.key==='ArrowRight')){ e.preventDefault(); var nm=S.mode==='clin'?'pat':'clin'; $('[data-mode="'+nm+'"]').click(); $('[data-mode="'+nm+'"]').focus(); return; }
+    if(tag==='input'||tag==='select'||tag==='textarea'||e.metaKey||e.ctrlKey||e.altKey) return;
+    var keys=visibleKeys(), pos=keys.indexOf(S.img);
+    if(e.key==='ArrowRight'){ S.img=keys[(pos+1)%keys.length]; render(); say('Key image '+keyNum(S.img)+', '+KEYS[S.img].label); }
+    else if(e.key==='ArrowLeft'){ S.img=keys[(pos-1+keys.length)%keys.length]; render(); say('Key image '+keyNum(S.img)+', '+KEYS[S.img].label); }
+    else if((e.key==='c'||e.key==='C') && S.mode==='clin' && S.pstate!=='reportonly'){ if(S.study===0){ toast('This is the earliest study, so there\u2019s nothing to compare it with.'); return; } var order=['off','swipe','side']; S.compare=order[(order.indexOf(S.compare)+1)%3]; if(S.compare!=='off' && S.img===0) S.img=1; render(); say('Compare: '+S.compare); }
+    else if((e.key==='g'||e.key==='G') && S.mode==='clin' && S.pstate!=='reportonly'){ $('[data-act="ghost"]') && $('[data-act="ghost"]').click(); }
+  });
+
+  function bindSwipe(){
+    var r=$('#swipe'); if(r) r.addEventListener('input',function(){ S.swipe=+r.value; applySwipe(); });
+    var grip=$('#grip'), stage=grip?grip.closest('.stage'):null; if(!grip) return;
+    grip.addEventListener('pointerdown',function(e){ e.preventDefault(); grip.setPointerCapture(e.pointerId);
+      function mv(ev){ var rc=stage.getBoundingClientRect(); S.swipe=Math.max(0,Math.min(100,Math.round((ev.clientX-rc.left)/rc.width*100))); applySwipe(); }
+      function up(){ grip.removeEventListener('pointermove',mv); grip.removeEventListener('pointerup',up); grip.removeEventListener('pointercancel',up); }
+      grip.addEventListener('pointermove',mv); grip.addEventListener('pointerup',up); grip.addEventListener('pointercancel',up);
+    });
+  }
+  function applySwipe(){ var top=$('#swipeTop'), h=$('#handle'), r=$('#swipe'); if(top) top.style.clipPath='inset(0 '+(100-S.swipe)+'% 0 0)'; if(h) h.style.left=S.swipe+'%'; if(r && +r.value!==S.swipe) r.value=S.swipe; writeHash(); }
+
+  /* ---------- deep links ---------- */
+  function hashStr(){ return 's='+STUDIES[S.study].id+'&i='+(S.img+1)+(S.sel?'&f='+S.sel:'')+'&m='+S.mode+'&w='+S.win+(S.compare!=='off'?'&c='+S.compare:''); }
+  function writeHash(){ try{ history.replaceState(null,'','#'+hashStr()); }catch(e){} }
+  function readHash(){
+    var h=(location.hash||'').replace(/^#/,''); if(!h) return;
+    h.split('&').forEach(function(p){ var kv=p.split('='), k=kv[0], v=decodeURIComponent(kv[1]||'');
+      if(k==='s'){ STUDIES.forEach(function(s,i){ if(s.id===v) S.study=i; }); }
+      if(k==='i'){ var n=parseInt(v,10)-1; if(n>=0&&n<KEYS.length) S.img=n; }
+      if(k==='f' && FIND[v]) S.sel=v;
+      if(k==='m' && (v==='clin'||v==='pat')) S.mode=v;
+      if(k==='w' && WIN[v]) S.win=v;
+      if(k==='c' && (v==='swipe'||v==='side')) S.compare=v;
+    });
+    if(S.study===0) S.compare='off';
+    if(S.mode==='pat'){ S.compare='off'; if(visibleKeys().indexOf(S.img)<0) S.img=0; }
+  }
+
+  $('#pstate').addEventListener('change',function(){ S.pstate=this.value; S.err=false; startLoad(); render({noFocus:true}); say('Preview state: '+this.options[this.selectedIndex].text); });
+  $('#reset').addEventListener('click',function(){ S={study:LATEST,img:0,win:'lung',compare:'off',swipe:50,ghost:false,ai:false,aiAsk:false,aiOnly:false,mode:'clin',sel:null,def:null,pstate:'normal',ready:{},err:false}; $('#pstate').value='normal'; startLoad(); render({noFocus:true}); window.scrollTo(0,0); toast('Prototype reset.'); });
+
+  readHash();
+  startLoad();
+  render({noFocus:true});
+})();
+</script>
+</body>
+</html>
