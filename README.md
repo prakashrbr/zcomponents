@@ -12,6 +12,16 @@ Date, time and review components built from our design specs, in plain JavaScrip
 
 Each folder has its own `README.md` with every option, behaviour, keyboard shortcut and known gap.
 
+These single-page prototypes live alongside them and are standalone (they don't use the shared core):
+
+| Prototype | What it's for | Demo |
+|---|---|---|
+| [Draft Review](draft-review/) | Three directions for reviewing an AI-drafted note | [`draft-review/index.html`](draft-review/index.html) |
+| [Clinical Timeline Scrubber](clinical-timeline-scrubber/) | Scrub a patient's longitudinal record on one time axis | [`clinical-timeline-scrubber/index.html`](clinical-timeline-scrubber/index.html) |
+| [Image Viewer](imageviewer/) | Step through and compare the key images of a study | [`imageviewer/index.html`](imageviewer/index.html) |
+| [Body Map](bodymap/) | Draw where pain and symptoms are, front and back | [`bodymap/index.html`](bodymap/index.html) |
+| [Voice Orb](voice-orb/) | Animated orb for recording and transcription | [`voice-orb/index.html`](voice-orb/index.html) |
+
 ## Repository layout
 
 ```
@@ -21,6 +31,7 @@ actual-date-time/       datetimepicker.js / .css: subclass of DatePicker
 time-picker/            timepicker.js / .css: uses the core's tokens, tooltip and time parser
 visit-replay/           visitreplay.js / .css: uses the core's tokens, buttons and tooltip; sample-visit.js is demo data
 design-tokens/          tokens.css (--ds-* variables, light and dark) and tokens.md (what each token is for)
+draft-review/, clinical-timeline-scrubber/, imageviewer/, bodymap/, voice-orb/   standalone prototypes
 index.html              Landing page: side navigation that opens each demo (#calendar-date-picker, #time-picker, …)
 ```
 

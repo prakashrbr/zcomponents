@@ -165,6 +165,11 @@
     <symbol id="i-datetime" viewBox="0 0 24 24"><path d="M20 11V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h5M4 10h16M9 3v4M15 3v4"/><circle cx="17" cy="17" r="4"/><path d="M17 15.3V17l1.2 1"/></symbol>
     <symbol id="i-time" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></symbol>
     <symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></symbol>
+    <symbol id="i-draft" viewBox="0 0 24 24"><path d="M14 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M8 9h7M8 13h4"/><path d="M18.5 13.5l2 2-5 5h-2v-2z"/></symbol>
+    <symbol id="i-timeline" viewBox="0 0 24 24"><path d="M3 12h18"/><circle cx="7" cy="12" r="2"/><circle cx="14" cy="12" r="2"/><path d="M18 6v12"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9.5" cy="10" r="1.5"/><path d="M20 16l-4.5-4.5L7 19"/></symbol>
+    <symbol id="i-body" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 8v6M6.5 9.5L12 8l5.5 1.5M9.5 21l2.5-7 2.5 7"/></symbol>
+    <symbol id="i-orb" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/></symbol>
     <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v14H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/></symbol>
     <symbol id="i-swatch" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.5"/><circle cx="16" cy="8" r="3.5"/><circle cx="12" cy="15.5" r="3.5"/></symbol>
     <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5l-8 8M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></symbol>
@@ -220,6 +225,30 @@
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-wave"/></svg>
         <span class="lbl">Visit Replay</span>
       </a>
+      <a href="#draft-review" data-slug="draft-review">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-draft"/></svg>
+        <span class="lbl">Draft Review</span>
+      </a>
+
+      <p class="group">Clinical record</p>
+      <a href="#clinical-timeline-scrubber" data-slug="clinical-timeline-scrubber">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-timeline"/></svg>
+        <span class="lbl">Clinical Timeline Scrubber</span>
+      </a>
+      <a href="#imageviewer" data-slug="imageviewer">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-image"/></svg>
+        <span class="lbl">Image Viewer</span>
+      </a>
+
+      <p class="group">Input</p>
+      <a href="#bodymap" data-slug="bodymap">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-body"/></svg>
+        <span class="lbl">Body Map</span>
+      </a>
+      <a href="#voice-orb" data-slug="voice-orb">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-orb"/></svg>
+        <span class="lbl">Voice Orb</span>
+      </a>
 
       <p class="group">Resources</p>
       <a href="https://github.com/prakashrbr/zcomponents#readme" target="_blank" rel="noopener">
@@ -260,8 +289,8 @@
     <main class="overview" id="overview">
       <div class="wrap">
         <p class="eyebrow">zcomponents</p>
-        <h1>Date, time and review components</h1>
-        <p class="lede">Components for clinical workflows in plain JavaScript and CSS, with no dependencies or build step. Each demo shows every state and feature in the custom design, Ant Design and MUI, in light and dark mode. Pick one from the side navigation.</p>
+        <h1>Components for clinical workflows</h1>
+        <p class="lede">Date and time pickers, review tools, clinical record views and input components in plain JavaScript and CSS, with no dependencies or build step. The date and time demos show every state in the custom design, Ant Design and MUI, in light and dark mode. Pick one from the side navigation.</p>
 
         <h2 class="sec">Date &amp; time</h2>
         <div class="grid">
@@ -304,6 +333,49 @@
             <div class="tags"><span>Waveform tags</span><span>Provenance thread</span><span>Clinical timeline</span></div>
             <span class="open">Open demo →</span>
           </a>
+          <a class="card" href="#draft-review">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-draft"/></svg></span></div>
+            <h3>Draft Review</h3>
+            <p>Three playful directions for reviewing an AI-drafted note, where every claim stays traceable and nothing is final until a clinician says so.</p>
+            <div class="tags"><span>Threads</span><span>Visit replay</span><span>Pencil to ink</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+        </div>
+
+        <h2 class="sec">Clinical record</h2>
+        <div class="grid">
+          <a class="card" href="#clinical-timeline-scrubber">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-timeline"/></svg></span></div>
+            <h3>Clinical Timeline Scrubber</h3>
+            <p>Drag through a patient&#8217;s longitudinal record: encounters, labs, medications, procedures and care gaps on one time axis.</p>
+            <div class="tags"><span>Scrubbing line</span><span>Event lanes</span><span>Keyboard</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+          <a class="card" href="#imageviewer">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-image"/></svg></span></div>
+            <h3>Image Viewer</h3>
+            <p>Step through the key images of a study, compare them with a prior and see what changed.</p>
+            <div class="tags"><span>Key images</span><span>Compare</span><span>Show change</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+        </div>
+
+        <h2 class="sec">Input</h2>
+        <div class="grid">
+          <a class="card" href="#bodymap">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-body"/></svg></span></div>
+            <h3>Body Map</h3>
+            <p>Patients and clinicians colour in where pain and symptoms are, front and back, with what it feels like and how strong.</p>
+            <div class="tags"><span>Draw &amp; erase</span><span>Feels like</span><span>Intensity</span></div>
+            <span class="open">Open demo →</span>
+          </a>
+          <a class="card" href="#voice-orb">
+            <div class="card-top"><span class="num"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-orb"/></svg></span></div>
+            <h3>Voice Orb</h3>
+            <p>An animated orb for recording and transcription: six looks and six states in one custom element, with no dependencies.</p>
+            <div class="tags"><span>Aura</span><span>Halo</span><span>Sonar</span><span>Wave</span></div>
+            <span class="open">Open demo →</span>
+          </a>
         </div>
 
         <div class="note">
@@ -329,7 +401,12 @@
       'date-range-picker': 'Date Range Picker',
       'actual-date-time': 'Actual Date & Time',
       'time-picker': 'Time Picker with Presets',
-      'visit-replay': 'Visit Replay'
+      'visit-replay': 'Visit Replay',
+      'draft-review': 'Draft Review',
+      'clinical-timeline-scrubber': 'Clinical Timeline Scrubber',
+      'imageviewer': 'Image Viewer',
+      'bodymap': 'Body Map',
+      'voice-orb': 'Voice Orb'
     };
     var root = document.documentElement;
     var shell = document.getElementById('shell');
