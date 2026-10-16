@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Session Recorder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script src="../voice-orb/voice-orb.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Session recorder</h1>
+    <p class="lead">A small recorder that floats above any page of the web app while a session is being recorded. Drag it to a corner, hover to see more, and use the panel to try each variant, state and setting. All data is sample data.</p>
+  </div>
+  <div class="layout">
+    <div class="stage" id="stage" aria-label="Sample provider screen">
+      <div id="screen"></div>
+    </div>
+    <aside class="panel" aria-label="Demo controls">
+      <div class="grp"><h2>Variant</h2><div class="opts" id="o-variant"></div><p class="note" id="vnote"></p></div>
+      <div class="grp"><h2>Simulate</h2><div class="opts" id="o-sim"></div></div>
+      <div class="grp"><h2>Settings</h2>
+        <div class="row">Consent<div class="seg" id="s-policy"><button data-v="none">None</button><button data-v="verbal">Verbal</button><button data-v="written">Written</button></div></div>
+        <div class="row">Timer shows<div class="seg" id="s-timer"><button data-v="recorded">Recorded</button><button data-v="wall">Wall clock</button></div></div>
+        <div class="row">Billing ticks<div class="seg" id="s-ticks"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+        <div class="row">Session length<div class="seg" id="s-sched"><button data-v="45">45m</button><button data-v="50">50m</button><button data-v="60">60m</button></div></div>
+        <div class="row">Screen sharing<div class="seg" id="s-share"><button data-v="off">Off</button><button data-v="on">On</button></div></div>
+        <div class="row">Demo speed<div class="seg" id="s-speed"><button data-v="1">1×</button><button data-v="20">20×</button><button data-v="120">120×</button></div></div>
+      </div>
+      <div class="grp"><h2>Shortcuts</h2>
+        <div class="kbd"><kbd>Alt Shift P</kbd><span>Pause or resume</span><kbd>Alt Shift K</kbd><span>Pause at client's request</span><kbd>Alt Shift S</kbd><span>Stop</span><kbd>Alt Shift M</kbd><span>More options</span></div>
+      </div>
+      <div class="grp" id="closed" hidden><p class="note">The recorder closed after the draft was ready.</p><button class="reopen" id="reopen">Start a new recording</button></div>
+    </aside>
+  </div>
+</div>
+<div class="sr" aria-live="polite" id="live"></div>
+<script src="session-recorder.js"></script>
+</body>
+</html>
